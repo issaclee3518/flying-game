@@ -7,7 +7,9 @@ const JWT_SECRET = process.env.JWT_SECRET || '350600';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
 
 // MongoDB 연결
-mongoose.connect(MONGODB_URI);
+mongoose.connect(MONGODB_URI).catch(err => {
+    console.error('MongoDB 연결 오류:', err);
+});
 
 // 스키마 정의
 const userSchema = new mongoose.Schema({
