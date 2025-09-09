@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || '350600';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/desert-flight-game';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
 
 // MongoDB 연결
 mongoose.connect(MONGODB_URI, {
