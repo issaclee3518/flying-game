@@ -102,8 +102,4 @@ export default async function handler(req, res) {
         
         res.status(500).json({ error: '서버 오류가 발생했습니다' });
     }
-    } catch (globalError) {
-        console.error('전역 오류:', globalError);
-        res.status(500).json({ error: '서버 내부 오류가 발생했습니다' });
-    }
 }
