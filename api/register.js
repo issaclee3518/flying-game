@@ -6,10 +6,21 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || '350600';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
 
-// MongoDB 연결
-mongoose.connect(MONGODB_URI).catch(err => {
-    console.error('MongoDB 연결 오류:', err);
-});
+// MongoDB 연결 (안전하게)
+let isConnected = false;
+
+async function connectDB() {
+    if (isConnected) return;
+    
+    try {
+        await mongoose.connect(MONGODB_URI);
+        isConnected = true;
+        console.log('MongoDB 연결 성공!');
+    } catch (err) {
+        console.error('MongoDB 연결 오류:', err);
+        throw err;
+    }
+}
 
 // 스키마 정의
 const userSchema = new mongoose.Schema({
@@ -54,6 +65,10 @@ export default async function handler(req, res) {
         if (req.method !== 'POST') {
             return res.status(405).json({ error: 'Method not allowed' });
         }
+
+        // MongoDB 연결
+        await connectDB();
+
         const { username, email, password } = req.body;
 
         if (!username || !email || !password) {
