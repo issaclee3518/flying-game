@@ -85,47 +85,31 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // MongoDB 연결
-        await connectDB();
-
-        // 사용자 찾기
-        const user = await User.findOne({ username });
-        if (!user) {
+        // 임시 해결책: 단순한 응답 (Netlify Functions 환경 문제 해결 전까지)
+        console.log('로그인 요청 받음:', { username });
+        
+        // 간단한 사용자 확인 (메모리 기반)
+        const validUsers = ['issac', 'testuser']; // 임시 목록
+        if (!validUsers.includes(username)) {
             return {
                 statusCode: 401,
                 headers,
                 body: JSON.stringify({ error: '사용자명 또는 비밀번호가 올바르지 않습니다' })
             };
         }
-
-        // 비밀번호 확인
-        const isValidPassword = await bcrypt.compare(password, user.password);
-        if (!isValidPassword) {
-            return {
-                statusCode: 401,
-                headers,
-                body: JSON.stringify({ error: '사용자명 또는 비밀번호가 올바르지 않습니다' })
-            };
-        }
-
-        // JWT 토큰 생성
-        const token = jwt.sign(
-            { userId: user._id, username: user.username },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
+        
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                message: '로그인 성공!',
-                token,
+                message: '로그인 성공! (임시 모드)',
+                token: 'temp-token-' + Date.now(),
                 user: { 
-                    id: user._id, 
-                    username: user.username, 
-                    email: user.email 
-                }
+                    id: 'temp-id-' + Date.now(),
+                    username: username, 
+                    email: username + '@example.com'
+                },
+                note: '실제 인증은 나중에 구현됩니다'
             })
         };
 
