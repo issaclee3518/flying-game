@@ -5,18 +5,38 @@
       "maxDuration": 30
     }
   },
-  "routes": [
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "*.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000"
+        }
+      ]
     },
     {
-      "src": "/(.*\\.(js|css|html|png|jpg|jpeg|gif|ico|svg))",
+      "source": "*.html",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html"
+        }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*\\.js)$",
       "dest": "/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "src": "/(.*\\.html)$",
+      "dest": "/$1"
     }
   ]
 }
