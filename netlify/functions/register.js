@@ -88,6 +88,31 @@ exports.handler = async (event, context) => {
         // MongoDB 연결
         await connectDB();
 
+        // 중복 사용자명 확인
+        const existingUser = await User.findOne({ 
+            $or: [
+                { username: username },
+                { email: email }
+            ]
+        });
+
+        if (existingUser) {
+            if (existingUser.username === username) {
+                return {
+                    statusCode: 409,
+                    headers,
+                    body: JSON.stringify({ error: '이미 사용 중인 사용자명입니다' })
+                };
+            }
+            if (existingUser.email === email) {
+                return {
+                    statusCode: 409,
+                    headers,
+                    body: JSON.stringify({ error: '이미 사용 중인 이메일입니다' })
+                };
+            }
+        }
+
         // 비밀번호 해싱
         const saltRounds = 12;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
