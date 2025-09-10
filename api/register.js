@@ -40,21 +40,20 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 export default async function handler(req, res) {
-    // CORS 설정
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
     try {
+        // CORS 설정
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+        if (req.method === 'OPTIONS') {
+            res.status(200).end();
+            return;
+        }
+
+        if (req.method !== 'POST') {
+            return res.status(405).json({ error: 'Method not allowed' });
+        }
         const { username, email, password } = req.body;
 
         if (!username || !email || !password) {
@@ -102,5 +101,9 @@ export default async function handler(req, res) {
         }
         
         res.status(500).json({ error: '서버 오류가 발생했습니다' });
+    }
+    } catch (globalError) {
+        console.error('전역 오류:', globalError);
+        res.status(500).json({ error: '서버 내부 오류가 발생했습니다' });
     }
 }
