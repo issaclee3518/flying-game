@@ -1,90 +1,34 @@
-// 로그인 API
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-const JWT_SECRET = process.env.JWT_SECRET || '350600';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
-
-// MongoDB 연결
-mongoose.connect(MONGODB_URI).catch(err => {
-    console.error('MongoDB 연결 오류:', err);
-});
-
-// 스키마 정의
-const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        minlength: 3,
-        maxlength: 20
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6
-    }
-}, {
-    timestamps: true
-});
-
-const User = mongoose.model('User', userSchema);
-
+// 간단한 로그인 API (테스트용)
 export default async function handler(req, res) {
-    // CORS 설정
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
     try {
+        // CORS 설정
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+        if (req.method === 'OPTIONS') {
+            res.status(200).end();
+            return;
+        }
+
+        if (req.method !== 'POST') {
+            return res.status(405).json({ error: 'Method not allowed' });
+        }
+
         const { username, password } = req.body;
 
         if (!username || !password) {
             return res.status(400).json({ error: '사용자명과 비밀번호를 입력해주세요' });
         }
 
-        const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(401).json({ error: '잘못된 사용자명 또는 비밀번호입니다' });
-        }
-
-        const isValidPassword = await bcrypt.compare(password, user.password);
-        if (!isValidPassword) {
-            return res.status(401).json({ error: '잘못된 사용자명 또는 비밀번호입니다' });
-        }
-
-        const token = jwt.sign(
-            { userId: user._id, username: user.username },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        res.json({
-            message: '로그인 성공',
-            token,
+        // 간단한 응답 (데이터베이스 없이)
+        res.status(200).json({
+            message: '로그인 테스트 성공!',
+            token: 'test-token-' + Date.now(),
             user: { 
-                id: user._id, 
-                username: user.username, 
-                email: user.email 
-            }
+                username: username
+            },
+            timestamp: new Date().toISOString()
         });
 
     } catch (error) {
