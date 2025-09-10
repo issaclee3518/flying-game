@@ -6,19 +6,26 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || '350600';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
 
-// MongoDB 연결
+// MongoDB 연결 (Netlify Functions 최적화)
 let isConnected = false;
 
 async function connectDB() {
-    if (isConnected) return;
+    if (isConnected) {
+        return mongoose.connection.readyState === 1;
+    }
     
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
         isConnected = true;
         console.log('MongoDB 연결 성공!');
+        return true;
     } catch (err) {
         console.error('MongoDB 연결 오류:', err);
-        throw err;
+        isConnected = false;
+        return false;
     }
 }
 
@@ -43,6 +50,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 6
+    },
+    bestScore: {
+        type: Number,
+        default: 0
+    },
+    totalGames: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true
@@ -85,31 +100,57 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // 임시 해결책: 단순한 응답 (Netlify Functions 환경 문제 해결 전까지)
-        console.log('로그인 요청 받음:', { username });
-        
-        // 간단한 사용자 확인 (메모리 기반)
-        const validUsers = ['issac', 'testuser']; // 임시 목록
-        if (!validUsers.includes(username)) {
+        // MongoDB 연결 시도
+        const dbConnected = await connectDB();
+        if (!dbConnected) {
+            console.error('MongoDB 연결 실패');
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ error: '데이터베이스 연결에 실패했습니다' })
+            };
+        }
+
+        // 사용자 찾기
+        const user = await User.findOne({ username });
+        if (!user) {
             return {
                 statusCode: 401,
                 headers,
                 body: JSON.stringify({ error: '사용자명 또는 비밀번호가 올바르지 않습니다' })
             };
         }
-        
+
+        // 비밀번호 확인
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+            return {
+                statusCode: 401,
+                headers,
+                body: JSON.stringify({ error: '사용자명 또는 비밀번호가 올바르지 않습니다' })
+            };
+        }
+
+        // JWT 토큰 생성
+        const token = jwt.sign(
+            { userId: user._id, username: user.username },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        console.log('로그인 성공:', user.username);
+
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                message: '로그인 성공! (임시 모드)',
-                token: 'temp-token-' + Date.now(),
+                message: '로그인 성공!',
+                token,
                 user: { 
-                    id: 'temp-id-' + Date.now(),
-                    username: username, 
-                    email: username + '@example.com'
-                },
-                note: '실제 인증은 나중에 구현됩니다'
+                    id: user._id, 
+                    username: user.username, 
+                    email: user.email 
+                }
             })
         };
 

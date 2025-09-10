@@ -21,6 +21,42 @@ async function connectDB() {
     }
 }
 
+// 사용자 스키마 정의
+const userSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        minlength: 3,
+        maxlength: 20
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 6
+    },
+    bestScore: {
+        type: Number,
+        default: 0
+    },
+    totalGames: {
+        type: Number,
+        default: 0
+    }
+}, {
+    timestamps: true
+});
+
+const User = mongoose.model('User', userSchema);
+
 // 점수 스키마 정의
 const scoreSchema = new mongoose.Schema({
     userId: {
@@ -97,6 +133,16 @@ exports.handler = async (event, context) => {
         // MongoDB 연결
         await connectDB();
 
+        // 사용자 정보 가져오기
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ error: '사용자를 찾을 수 없습니다' })
+            };
+        }
+
         // 점수 저장
         const newScore = new Score({
             userId: decoded.userId,
@@ -105,6 +151,17 @@ exports.handler = async (event, context) => {
         });
 
         await newScore.save();
+
+        // 사용자 최고기록 업데이트
+        let isNewRecord = false;
+        if (score > user.bestScore) {
+            user.bestScore = score;
+            isNewRecord = true;
+        }
+        user.totalGames += 1;
+        await user.save();
+
+        console.log(`점수 저장 완료: ${decoded.username} - ${score}점 (새 기록: ${isNewRecord})`);
 
         return {
             statusCode: 201,
@@ -115,6 +172,11 @@ exports.handler = async (event, context) => {
                     id: newScore._id,
                     score: newScore.score,
                     gameDate: newScore.gameDate
+                },
+                userStats: {
+                    bestScore: user.bestScore,
+                    totalGames: user.totalGames,
+                    isNewRecord: isNewRecord
                 }
             })
         };
