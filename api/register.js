@@ -1,55 +1,4 @@
-// 회원가입 API
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-const JWT_SECRET = process.env.JWT_SECRET || '350600';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
-
-// MongoDB 연결 (안전하게)
-let isConnected = false;
-
-async function connectDB() {
-    if (isConnected) return;
-    
-    try {
-        await mongoose.connect(MONGODB_URI);
-        isConnected = true;
-        console.log('MongoDB 연결 성공!');
-    } catch (err) {
-        console.error('MongoDB 연결 오류:', err);
-        throw err;
-    }
-}
-
-// 스키마 정의
-const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        minlength: 3,
-        maxlength: 20
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6
-    }
-}, {
-    timestamps: true
-});
-
-const User = mongoose.model('User', userSchema);
-
+// 간단한 회원가입 API (테스트용)
 export default async function handler(req, res) {
     try {
         // CORS 설정
@@ -66,55 +15,24 @@ export default async function handler(req, res) {
             return res.status(405).json({ error: 'Method not allowed' });
         }
 
-        // MongoDB 연결
-        await connectDB();
-
         const { username, email, password } = req.body;
 
         if (!username || !email || !password) {
             return res.status(400).json({ error: '모든 필드를 입력해주세요' });
         }
 
-        if (password.length < 6) {
-            return res.status(400).json({ error: '비밀번호는 6자 이상이어야 합니다' });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 12);
-
-        const user = new User({
-            username,
-            email,
-            password: hashedPassword
-        });
-
-        await user.save();
-
-        const token = jwt.sign(
-            { userId: user._id, username: user.username },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
+        // 간단한 응답 (데이터베이스 없이)
         res.status(201).json({
-            message: '회원가입이 완료되었습니다',
-            token,
+            message: '회원가입 테스트 성공!',
             user: { 
-                id: user._id, 
-                username: user.username, 
-                email: user.email 
-            }
+                username: username, 
+                email: email 
+            },
+            timestamp: new Date().toISOString()
         });
 
     } catch (error) {
         console.error('회원가입 오류:', error);
-        
-        if (error.code === 11000) {
-            const field = Object.keys(error.keyPattern)[0];
-            return res.status(400).json({ 
-                error: field === 'username' ? '이미 존재하는 사용자명입니다' : '이미 존재하는 이메일입니다' 
-            });
-        }
-        
         res.status(500).json({ error: '서버 오류가 발생했습니다' });
     }
 }
