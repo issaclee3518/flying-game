@@ -1,4 +1,4 @@
-// 게임 상태 및 설정
+// Game state and settings
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
@@ -7,7 +7,7 @@ const gameOverPanel = document.getElementById('gameOverPanel');
 const finalScoreElement = document.getElementById('finalScore');
 const restartButton = document.getElementById('restartButton');
 
-// 모바일 대응 - 캔버스 크기 설정
+// Mobile support - Canvas size setup
 function setupCanvas() {
     const isMobile = window.innerWidth <= 768;
     const isSmallMobile = window.innerWidth <= 480;
@@ -24,10 +24,10 @@ function setupCanvas() {
     }
 }
 
-// 초기 캔버스 설정
+// Initial canvas setup
 setupCanvas();
 
-// 모바일 감지 및 컨트롤 텍스트 업데이트
+// Mobile detection and control text update
 function updateControlText() {
     const controlText = document.getElementById('controlText');
     const isMobile = window.innerWidth <= 768;
@@ -39,25 +39,25 @@ function updateControlText() {
     }
 }
 
-// 초기 컨트롤 텍스트 설정
+// Initial control text setup
 updateControlText();
 
-// 게임 변수
+// Game variables
 let gameRunning = true;
 let score = 0;
 let frameCount = 0;
 let gameStartTime = Date.now();
 let lastFrameTime = Date.now();
 
-// 안개 효과 변수
-let fogEffect = 0; // 0~1 사이 값, 1이 최대 안개
-let fogDecayRate = 0.02; // 안개 사라지는 속도
-let fogTimer = 0; // 안개 지속 시간 (3초 = 180프레임)
-let fogDuration = 180; // 3초 지속
-let cloudTimer = 0; // 구름 안에 있는 시간
-let cloudDuration = 90; // 1.5초 = 90프레임
+// Fog effect variables
+let fogEffect = 0; // Value between 0~1, 1 is maximum fog
+let fogDecayRate = 0.02; // Fog disappearing speed
+let fogTimer = 0; // Fog duration (3 seconds = 180 frames)
+let fogDuration = 180; // 3 seconds duration
+let cloudTimer = 0; // Time inside cloud
+let cloudDuration = 90; // 1.5 seconds = 90 frames
 
-// 플레이어 객체
+// Player object
 const player = {
     x: 100,
     y: 200,

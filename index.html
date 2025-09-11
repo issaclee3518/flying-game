@@ -918,12 +918,12 @@
                 const confirmPassword = document.getElementById('registerPasswordConfirm').value;
                 
                 if (password !== confirmPassword) {
-                    document.getElementById('registerError').textContent = '비밀번호가 일치하지 않습니다.';
+                    document.getElementById('registerError').textContent = 'Passwords do not match.';
                     return false;
                 }
                 
                 if (password.length < 6) {
-                    document.getElementById('registerError').textContent = '비밀번호는 6자 이상이어야 합니다.';
+                    document.getElementById('registerError').textContent = 'Password must be at least 6 characters long.';
                     return false;
                 }
             }
@@ -953,12 +953,12 @@
             const user = window.authManager?.getCurrentUser();
             if (user) {
                 const profileInfo = `
-사용자 정보:
-- 이름: ${user.displayName || '설정되지 않음'}
-- 이메일: ${user.email}
-- 가입일: ${user.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : '알 수 없음'}
-- 마지막 로그인: ${user.metadata?.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString() : '알 수 없음'}
-- 이메일 인증: ${user.emailVerified ? '인증됨' : '미인증'}
+User Information:
+- Name: ${user.displayName || 'Not set'}
+- Email: ${user.email}
+- Join Date: ${user.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : 'Unknown'}
+- Last Login: ${user.metadata?.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
+- Email Verification: ${user.emailVerified ? 'Verified' : 'Not verified'}
                 `;
                 alert(profileInfo);
             }
