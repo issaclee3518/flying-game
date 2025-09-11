@@ -235,7 +235,7 @@ class AuthManager {
         document.getElementById('authPanel').style.display = 'none';
         document.getElementById('userPanel').style.display = 'block';
         const displayName = this.user.displayName || this.user.email;
-        document.getElementById('userWelcome').textContent = `환영합니다, ${displayName}님!`;
+        document.getElementById('userWelcome').textContent = `Welcome, ${displayName}!`;
         
         // 사용자 아바타 설정
         const avatar = document.getElementById('userAvatar');

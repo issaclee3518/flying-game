@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Lost in Ashes">
-    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="unsafe-none">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none">
     <style>
         body {
@@ -820,9 +820,7 @@
                 }
                 
                 // Google Login Popup Setup
-                const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider, {
-                    popupRedirectUri: window.location.origin
-                });
+                const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
                 const user = result.user;
                 
                 // Dynamically import Firebase functions
