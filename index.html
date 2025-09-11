@@ -735,20 +735,68 @@
             <div id="gameStatus"></div>
         </div>
         <div class="controls">
-            <p id="controlText">Press SPACE or click to jump!</p>
-            <p>Press R key or Play Again button to restart when game over</p>
-            <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px; font-size: 12px; color: #666;">
-                <strong>🎮 게임 방법:</strong><br>
-                • 스페이스바나 화면 터치로 점프<br>
-                • 선인장, 새, 구름을 피하세요<br>
-                • 별 아이템을 수집해 무적 상태를 얻으세요<br>
-                • 낮과 밤이 바뀌는 사막에서 살아남으세요!
-            </div>
+            <!-- 캐릭터 버튼 (오른쪽 위) -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 5px;">
+                <div style="position: relative; padding: 8px; background: rgba(255,255,255,0.9); border-radius: 6px; font-size: 11px; display: flex; align-items: center; gap: 10px;">
+                    <button id="characterBtn" style="padding: 4px 12px; border: 1px solid #4CAF50; background: #4CAF50; color: white; border-radius: 4px; cursor: pointer; font-size: 11px;">👤 Character</button>
         </div>
     </div>
 
-    <!-- Firebase Configuration -->
-    <script src="firebase-config.js"></script>
+            <!-- 설정 버튼 (오른쪽 위) -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                <div style="position: relative; padding: 8px; background: rgba(255,255,255,0.9); border-radius: 6px; font-size: 11px; display: flex; align-items: center; gap: 10px;">
+                    <button id="settingsBtn" style="padding: 4px 12px; border: 1px solid #2196F3; background: #2196F3; color: white; border-radius: 4px; cursor: pointer; font-size: 11px;">⚙️ Setting</button>
+                    <span id="soundStatus" style="color: #666;">🔊 ON</span>
+                </div>
+            </div>
+            
+            <!-- 숨겨진 오디오 요소 -->
+            <audio id="testAudio" preload="auto" style="display: none;">
+                <source src="music.mp3" type="audio/mpeg">
+            </audio>
+            
+            <!-- 캐릭터 선택 화면 (숨겨진 상태) -->
+            <div id="characterScreen" style="display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; max-width: 400px; width: 90%;">
+                    <h2 style="margin: 0 0 20px 0; color: #4CAF50;">⚫ 콩알 스킨 선택</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                        <div class="character-option" data-character="blue" style="padding: 15px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <canvas id="blueBean" width="60" height="60" style="margin: 0 auto 10px auto; display: block;"></canvas>
+                            <div style="font-size: 14px; font-weight: bold;">파란색 콩알</div>
+                        </div>
+                        
+                        <div class="character-option" data-character="yellow" style="padding: 15px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <canvas id="yellowBean" width="60" height="60" style="margin: 0 auto 10px auto; display: block;"></canvas>
+                            <div style="font-size: 14px; font-weight: bold;">노란색 콩알</div>
+                        </div>
+                        
+                        <div class="character-option" data-character="white" style="padding: 15px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <canvas id="whiteBean" width="60" height="60" style="margin: 0 auto 10px auto; display: block;"></canvas>
+                            <div style="font-size: 14px; font-weight: bold;">하얀색 콩알</div>
+                        </div>
+                        
+                        <div class="character-option" data-character="green" style="padding: 15px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <canvas id="greenBean" width="60" height="60" style="margin: 0 auto 10px auto; display: block;"></canvas>
+                            <div style="font-size: 14px; font-weight: bold;">초록색 콩알</div>
+                        </div>
+                    </div>
+                    
+                    <button id="closeCharacterScreen" style="padding: 8px 20px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">닫기</button>
+                </div>
+            </div>
+            
+            <!-- 설정 패널 (숨겨진 상태) -->
+            <div id="settingsPanel" style="display: none !important; position: fixed; bottom: 80px; left: 58%; width: 120px; height: 60px; padding: 6px; background: rgba(255,255,255,0.95); border-radius: 6px; font-size: 10px; border: 1px solid #2196F3; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 9999;">
+                <h3 style="margin: 0 0 4px 0; color: #2196F3; font-size: 10px;">⚙️ Audio</h3>
+                
+                <button id="toggleSound" style="width: 100%; padding: 3px 6px; border: 1px solid #ccc; background: #f0f0f0; border-radius: 3px; cursor: pointer; font-size: 9px;">음소거</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Firebase Configuration removed for Crazy Games compatibility -->
     <script>
         // Service Worker Registration (PWA Feature)
         if ('serviceWorker' in navigator) {
@@ -764,42 +812,324 @@
         }
     </script>
     <script>
-        // Firebase Initialization
-        document.addEventListener('DOMContentLoaded', async function() {
-            const success = await window.initializeFirebase();
-            if (!success) {
-                alert('Firebase initialization failed. Please refresh the page.');
-            } else {
-                console.log('Firebase initialized successfully.');
-                console.log('⚠️ Firebase Console setup required:');
-                console.log('🔗 https://console.firebase.google.com/project/mini-game-89572');
-                console.log('');
-                console.log('Required setup:');
-                console.log('1. Authentication > Sign-in method > Email/Password > Enable');
-                console.log('2. Authentication > Sign-in method > Google > Enable');
-                console.log('3. Realtime Database > Create Database > Start in test mode');
-                console.log('');
-                console.log('Try sign up/login after completing the setup.');
-                
-                // AuthManager Initialization
-                const authManager = await window.initializeAuthManager();
-                if (!authManager) {
-                    console.error('AuthManager initialization failed.');
-                }
-                
-                // Firebase Setup Status Check (after 5 seconds)
-                setTimeout(async () => {
-                    try {
-                        // Simple test to check Firebase setup status
-                        if (window.firebaseAuth) {
-                            // Test to verify Firebase setup is correct
-                            console.log('Checking Firebase setup...');
-                        }
-                    } catch (error) {
-                        console.log('Firebase setup check failed:', error);
+        // Simple Local Storage Game (No Firebase dependency)
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Lost in Ashes - Game Ready!');
+            
+            // Hide auth panel and show game directly
+            const authPanel = document.getElementById('authPanel');
+            const userPanel = document.getElementById('userPanel');
+            const gameContainer = document.querySelector('.game-container');
+            
+            if (authPanel) authPanel.style.display = 'none';
+            if (userPanel) userPanel.style.display = 'none';
+            if (gameContainer) gameContainer.style.display = 'block';
+            
+            // Initialize simple local storage system
+            window.simpleAuth = {
+                isAuthenticated: () => false,
+                saveScore: (score) => {
+                    const bestScore = localStorage.getItem('bestScore') || 0;
+                    if (score > bestScore) {
+                        localStorage.setItem('bestScore', score);
+                        return true; // New record
                     }
-                }, 5000);
+                    return false;
+                },
+                getBestScore: () => parseInt(localStorage.getItem('bestScore') || 0)
+            };
+            
+            // Update best score display
+            const bestScore = window.simpleAuth.getBestScore();
+            document.getElementById('bestScoreValue').textContent = bestScore;
+            
+            // 게임 시작 시 배경음악 자동 재생
+            setTimeout(() => {
+                if (window.audio && window.audio.masterVolume > 0) {
+                    window.audio.playMusic();
+                    console.log('Background music started automatically');
+                }
+            }, 1000); // 1초 후 배경음악 시작
+            
+            // 설정 패널 요소들
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsPanel = document.getElementById('settingsPanel');
+            const toggleSoundBtn = document.getElementById('toggleSound');
+            const soundStatus = document.getElementById('soundStatus');
+            const testAudio = document.getElementById('testAudio');
+            
+            // 캐릭터 선택 요소들
+            const characterBtn = document.getElementById('characterBtn');
+            const characterScreen = document.getElementById('characterScreen');
+            const closeCharacterScreenBtn = document.getElementById('closeCharacterScreen');
+            const characterOptions = document.querySelectorAll('.character-option');
+            
+            // 첫 번째 사용자 상호작용으로 오디오 활성화
+            let audioActivated = false;
+            function activateAudio() {
+                if (!audioActivated && window.audio && window.audio.audioContext) {
+                    window.audio.audioContext.resume().then(() => {
+                        console.log('Audio activated by user interaction');
+                        audioActivated = true;
+                        
+                        // 오디오 상태 확인
+                        console.log('Audio context state:', window.audio.audioContext.state);
+                        console.log('Background music loaded:', !!window.audio.backgroundMusicFile);
+                    });
+                }
             }
+            
+            // 모든 클릭/터치 이벤트에 오디오 활성화 추가
+            document.addEventListener('click', activateAudio);
+            document.addEventListener('touchstart', activateAudio);
+            
+            // 설정 버튼 이벤트
+            settingsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                activateAudio();
+                
+                const currentDisplay = settingsPanel.style.display;
+                console.log('Current display:', currentDisplay);
+                
+                if (currentDisplay === 'none' || currentDisplay === '') {
+                    settingsPanel.style.setProperty('display', 'block', 'important');
+                    console.log('Settings panel shown');
+            } else {
+                    settingsPanel.style.setProperty('display', 'none', 'important');
+                    console.log('Settings panel hidden');
+                }
+            });
+            
+            // 캐릭터 버튼 이벤트
+            characterBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                characterScreen.style.setProperty('display', 'flex', 'important');
+                console.log('Character screen opened');
+            });
+            
+            // 캐릭터 화면 닫기
+            closeCharacterScreenBtn.addEventListener('click', () => {
+                characterScreen.style.setProperty('display', 'none', 'important');
+                console.log('Character screen closed');
+            });
+            
+            // 캐릭터 선택
+            characterOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const character = option.dataset.character;
+                    
+                    // 모든 옵션에서 선택 상태 제거
+                    characterOptions.forEach(opt => {
+                        opt.style.border = '2px solid #ddd';
+                        opt.style.backgroundColor = 'white';
+                    });
+                    
+                    // 선택된 옵션에 선택 상태 적용
+                    option.style.border = '2px solid #4CAF50';
+                    option.style.backgroundColor = '#f0f8ff';
+                    
+                    // 게임에 캐릭터 변경 알림 (나중에 game.js에서 처리)
+                    if (window.game && window.game.changeCharacter) {
+                        window.game.changeCharacter(character);
+                    }
+                    
+                    // 로컬 스토리지에 저장
+                    localStorage.setItem('selectedCharacter', character);
+                    
+                    console.log('Character selected:', character);
+                    
+                    // 1초 후 화면 닫기
+                    setTimeout(() => {
+                        characterScreen.style.setProperty('display', 'none', 'important');
+                    }, 1000);
+                });
+            });
+            
+            // 콩알 그리기 함수
+            function drawBean(canvasId, color) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = 24;
+                
+                // 콩알 몸체 그리기 (더 둥글고 귀여운 모양)
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY + 2, radius, radius * 0.9, 0, 0, 2 * Math.PI);
+                
+                // 그라데이션 효과 (더 부드럽게)
+                const gradient = ctx.createRadialGradient(centerX - 6, centerY - 6, 0, centerX, centerY, radius);
+                gradient.addColorStop(0, lightenColor(color, 30));
+                gradient.addColorStop(0.6, color);
+                gradient.addColorStop(1, adjustColor(color, -15));
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 부드러운 테두리
+                ctx.strokeStyle = adjustColor(color, -30);
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // 큰 눈 그리기 (더 귀엽게)
+                const eyeY = centerY - 3;
+                const eyeSize = 8;
+                
+                // 왼쪽 눈 (흰색 바탕)
+                ctx.beginPath();
+                ctx.arc(centerX - 9, eyeY, eyeSize, 0, 2 * Math.PI);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                
+                // 왼쪽 눈 테두리
+                ctx.beginPath();
+                ctx.arc(centerX - 9, eyeY, eyeSize, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+                
+                // 왼쪽 눈 하이라이트 (큰 하이라이트)
+                ctx.beginPath();
+                ctx.arc(centerX - 10, eyeY - 2, 2.5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+                
+                // 왼쪽 눈 검은색 점 (동공)
+                ctx.beginPath();
+                ctx.arc(centerX - 9, eyeY + 1, 3.5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                
+                // 오른쪽 눈 (흰색 바탕)
+                ctx.beginPath();
+                ctx.arc(centerX + 3, eyeY, eyeSize, 0, 2 * Math.PI);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                
+                // 오른쪽 눈 테두리
+                ctx.beginPath();
+                ctx.arc(centerX + 3, eyeY, eyeSize, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+                
+                // 오른쪽 눈 하이라이트
+                ctx.beginPath();
+                ctx.arc(centerX + 2, eyeY - 2, 2.5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+                
+                // 오른쪽 눈 검은색 점 (동공)
+                ctx.beginPath();
+                ctx.arc(centerX + 3, eyeY + 1, 3.5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                
+                // 귀여운 볼 홍조
+                ctx.beginPath();
+                ctx.arc(centerX - 15, centerY + 8, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255, 182, 193, 0.6)';
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(centerX + 12, centerY + 8, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255, 182, 193, 0.6)';
+                ctx.fill();
+                
+                // 안테나 그리기 (더 부드럽게)
+                const antennaX = centerX + 6;
+                const antennaY = centerY - 18;
+                
+                ctx.beginPath();
+                ctx.moveTo(antennaX, antennaY);
+                ctx.lineTo(antennaX + 6, antennaY - 10);
+                ctx.strokeStyle = '#FF6B35';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                
+                // 안테나 끝 (작은 원)
+                ctx.beginPath();
+                ctx.arc(antennaX + 6, antennaY - 10, 2, 0, 2 * Math.PI);
+                ctx.fillStyle = '#FF6B35';
+                ctx.fill();
+                
+                // 미소 그리기
+                ctx.beginPath();
+                ctx.arc(centerX - 3, centerY + 12, 8, 0.2 * Math.PI, 0.8 * Math.PI);
+                ctx.strokeStyle = '#FF6B35';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+            
+            // 색상 조정 함수 (더 어둡게)
+            function adjustColor(color, amount) {
+                const hex = color.replace('#', '');
+                const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+                const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+                const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+            
+            // 색상 밝게 만들기 함수
+            function lightenColor(color, amount) {
+                const hex = color.replace('#', '');
+                const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+                const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+                const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+            
+            // 각 콩알 그리기
+            drawBean('blueBean', '#2196F3');
+            drawBean('yellowBean', '#FFEB3B');
+            drawBean('whiteBean', '#FFFFFF');
+            drawBean('greenBean', '#4CAF50');
+            
+            // 저장된 캐릭터 불러오기
+            const savedCharacter = localStorage.getItem('selectedCharacter') || 'green';
+            const savedOption = document.querySelector(`[data-character="${savedCharacter}"]`);
+            if (savedOption) {
+                savedOption.style.border = '2px solid #4CAF50';
+                savedOption.style.backgroundColor = '#f0f8ff';
+            }
+            
+            toggleSoundBtn.addEventListener('click', () => {
+                activateAudio(); // 오디오 활성화
+                
+                if (window.audio) {
+                    if (window.audio.masterVolume > 0) {
+                        // 음소거 - 즉시 음악 중단
+                        window.audio.masterVolume = 0;
+                        toggleSoundBtn.textContent = '음소거 해제';
+                        soundStatus.textContent = 'OFF';
+                        soundStatus.style.color = '#999';
+                        
+                        // 즉시 음악 중단
+                        window.audio.stopMusic();
+                        console.log('Sound muted - music stopped immediately');
+                    } else {
+                        // 음소거 해제
+                        window.audio.masterVolume = 0.7;
+                        toggleSoundBtn.textContent = '음소거';
+                        soundStatus.textContent = 'ON';
+                        soundStatus.style.color = '#666';
+                        
+                        // 게임이 실행 중일 때만 음악 시작
+                        if (window.gameRunning === true) {
+                            setTimeout(() => {
+                                window.audio.playMusic();
+                                console.log('Sound unmuted - music started (game running)');
+                            }, 200);
+                        } else {
+                            console.log('Sound unmuted - no music (game not running)');
+                        }
+                    }
+                }
+            });
         });
     </script>
     
@@ -1009,8 +1339,8 @@ User Information:
         });
     </script>
     
-    <script type="module" src="auth.js?v=2.0"></script>
-    <script src="game.js?v=2.0"></script>
+    <!-- Firebase removed for Crazy Games compatibility -->
+    <script src="game.js?v=2.1"></script>
     
     <!-- Force cache invalidation -->
     <script>

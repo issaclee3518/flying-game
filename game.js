@@ -30,16 +30,18 @@ setupCanvas();
 // Mobile detection and control text update
 function updateControlText() {
     const controlText = document.getElementById('controlText');
-    const isMobile = window.innerWidth <= 768;
-    
-    if (isMobile) {
-        controlText.textContent = 'Touch the screen to fly up!';
-    } else {
-        controlText.textContent = 'Press SPACE or click to jump!';
+    if (controlText) {
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            controlText.textContent = 'Touch the screen to fly up!';
+        } else {
+            controlText.textContent = 'Press SPACE or click to jump!';
+        }
     }
 }
 
-// Initial control text setup
+// Initial control text setup (요소가 있을 때만 실행)
 updateControlText();
 
 // Game variables
@@ -48,6 +50,350 @@ let score = 0;
 let frameCount = 0;
 let gameStartTime = Date.now();
 let lastFrameTime = Date.now();
+
+// 게임 상태를 전역에서 접근 가능하도록 설정
+window.gameRunning = gameRunning;
+
+// 오디오 시스템
+const audio = {
+    // 오디오 파일들 (Web Audio API로 생성)
+    jumpSound: null,
+    collisionSound: null,
+    itemCollectSound: null,
+    gameOverSound: null,
+    newRecordSound: null,
+    backgroundMusic: null,
+    
+    // 실제 음악 파일
+    backgroundMusicFile: null,
+    backgroundMusicSource: null,
+    
+    // HTML5 Audio 요소
+    html5Audio: null,
+    
+    // 음량 설정
+    masterVolume: 0.7,
+    musicVolume: 0.4,
+    sfxVolume: 0.8,
+    
+    // 오디오 컨텍스트
+    audioContext: null,
+    
+    // 초기화
+    init() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.createSounds();
+            this.loadBackgroundMusic();
+            this.initHTML5Audio();
+        } catch (error) {
+            console.log('Audio not supported:', error);
+        }
+    },
+    
+    // HTML5 Audio 초기화
+    initHTML5Audio() {
+        this.html5Audio = new Audio('music.mp3');
+        this.html5Audio.loop = true;
+        this.html5Audio.volume = this.masterVolume * this.musicVolume;
+        console.log('HTML5 Audio initialized');
+    },
+    
+    // 배경음악 파일 로드
+    async loadBackgroundMusic() {
+        try {
+            console.log('Loading background music...');
+            const response = await fetch('music.mp3');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            this.backgroundMusicFile = await this.audioContext.decodeAudioData(arrayBuffer);
+            console.log('Background music loaded successfully:', this.backgroundMusicFile.duration, 'seconds');
+        } catch (error) {
+            console.log('Failed to load background music:', error);
+            console.log('Will use fallback generated music');
+        }
+    },
+    
+    // 사운드 생성 (Web Audio API 사용)
+    createSounds() {
+        if (!this.audioContext) return;
+        
+        // 점프 사운드 (짧은 톤)
+        this.jumpSound = this.createTone(400, 0.1, 'sine');
+        
+        // 충돌 사운드 (낮은 톤)
+        this.collisionSound = this.createTone(150, 0.3, 'sawtooth');
+        
+        // 아이템 수집 사운드 (높은 톤)
+        this.itemCollectSound = this.createTone(800, 0.2, 'square');
+        
+        // 게임 오버 사운드 (긴 낮은 톤)
+        this.gameOverSound = this.createTone(100, 1.0, 'triangle');
+        
+        // 새 기록 사운드 (상승하는 톤)
+        this.newRecordSound = this.createRisingTone();
+        
+        // 배경음악 (사막 테마)
+        this.createBackgroundMusic();
+    },
+    
+    // 톤 생성
+    createTone(frequency, duration, type = 'sine') {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(this.masterVolume * this.sfxVolume, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+        };
+    },
+    
+    // 상승하는 톤 생성 (새 기록용)
+    createRisingTone() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.type = 'sine';
+            
+            // 주파수가 400Hz에서 800Hz로 상승
+            oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(800, this.audioContext.currentTime + 0.5);
+            
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(this.masterVolume * this.sfxVolume, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.5);
+        };
+    },
+    
+    // 배경음악 생성
+    createBackgroundMusic() {
+        if (!this.audioContext) return;
+        
+        // 사막 테마 배경음악 패턴
+        this.backgroundMusic = {
+            isPlaying: false,
+            oscillators: [],
+            gainNodes: [],
+            melody: [
+                // 메인 멜로디 (사막 테마)
+                [220, 247, 277, 330, 370, 415, 370, 330], // A3, B3, C#4, E4, F#4, G#4, F#4, E4
+                [330, 370, 415, 494, 415, 370, 330, 277], // E4, F#4, G#4, B4, G#4, F#4, E4, C#4
+                [220, 247, 277, 330, 370, 415, 370, 330], // 반복
+                [330, 370, 415, 494, 415, 370, 330, 277]  // 반복
+            ],
+            melodyIndex: 0,
+            currentNote: 0,
+            noteDuration: 1500, // 1.5초마다 음표 변경
+            currentMelody: 0,
+            lastNoteTime: 0,
+            
+            start() {
+                if (this.isPlaying) return;
+                
+                this.isPlaying = true;
+                this.currentNote = 0;
+                this.currentMelody = 0;
+                this.lastNoteTime = audio.audioContext.currentTime;
+                this.playMelody();
+            },
+            
+            playMelody() {
+                if (!this.isPlaying) return;
+                
+                const currentTime = audio.audioContext.currentTime;
+                
+                // 새로운 음표 시작
+                if (currentTime - this.lastNoteTime >= this.noteDuration / 1000) {
+                    // 이전 음표 정리
+                    this.stopCurrentNote();
+                    
+                    // 새로운 음표 생성
+                    const currentMelodyLine = this.melody[this.currentMelody];
+                    const frequency = currentMelodyLine[this.currentNote];
+                    const oscillator = audio.audioContext.createOscillator();
+                    const gainNode = audio.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audio.audioContext.destination);
+                    
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(frequency, currentTime);
+                    
+                    // 부드러운 페이드 인/아웃
+                    gainNode.gain.setValueAtTime(0, currentTime);
+                    gainNode.gain.linearRampToValueAtTime(audio.masterVolume * audio.musicVolume * 0.2, currentTime + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(audio.masterVolume * audio.musicVolume * 0.2, currentTime + this.noteDuration / 1000 - 0.1);
+                    gainNode.gain.linearRampToValueAtTime(0, currentTime + this.noteDuration / 1000);
+                    
+                    oscillator.start(currentTime);
+                    oscillator.stop(currentTime + this.noteDuration / 1000);
+                    
+                    this.oscillators.push(oscillator);
+                    this.gainNodes.push(gainNode);
+                    
+                    // 다음 음표로 이동
+                    this.currentNote = (this.currentNote + 1) % this.melody.length;
+                    this.lastNoteTime = currentTime;
+                }
+                
+                // 다음 프레임에서 계속
+                if (this.isPlaying) {
+                    requestAnimationFrame(() => this.playMelody());
+                }
+            },
+            
+            stopCurrentNote() {
+                // 오래된 오실레이터 정리
+                this.oscillators = this.oscillators.filter(osc => {
+                    try {
+                        osc.stop();
+                        return false;
+                    } catch (e) {
+                        return false;
+                    }
+                });
+                this.gainNodes = [];
+            },
+            
+            stop() {
+                if (!this.isPlaying) return;
+                
+                this.isPlaying = false;
+                this.stopCurrentNote();
+            }
+        };
+    },
+    
+    // 사운드 재생
+    play(soundName) {
+        if (!this[soundName]) return;
+        
+        // 음소거 상태 확인
+        if (this.masterVolume <= 0) {
+            console.log('Sound muted, not playing:', soundName);
+            return;
+        }
+        
+        // 사용자 상호작용 후에만 오디오 재생
+        if (this.audioContext) {
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume().then(() => {
+                    this[soundName]();
+                }).catch(error => {
+                    console.log('Audio resume failed:', error);
+                });
+            } else {
+                this[soundName]();
+            }
+        }
+    },
+    
+    // 배경음악 재생/정지
+    playMusic() {
+        // HTML5 Audio 우선 사용
+        if (this.html5Audio) {
+            this.playHTML5Music();
+        } else if (this.backgroundMusicFile) {
+            // Web Audio API 사용
+            this.playBackgroundMusicFile();
+        } else if (this.backgroundMusic) {
+            // 폴백: 생성된 음악 재생
+            this.backgroundMusic.start();
+        }
+    },
+    
+    // HTML5 Audio로 음악 재생
+    playHTML5Music() {
+        if (!this.html5Audio) return;
+        
+        this.html5Audio.currentTime = 0;
+        // 음소거 상태 확인
+        const volume = this.masterVolume > 0 ? this.masterVolume * this.musicVolume : 0;
+        this.html5Audio.volume = volume;
+        this.html5Audio.play().then(() => {
+            console.log('HTML5 Background music started, volume:', volume);
+        }).catch(error => {
+            console.log('HTML5 Background music failed:', error);
+        });
+    },
+    
+    playBackgroundMusicFile() {
+        if (!this.backgroundMusicFile || !this.audioContext) return;
+        
+        // 이전 음악 정지
+        this.stopMusic();
+        
+        // 새 음악 재생
+        this.backgroundMusicSource = this.audioContext.createBufferSource();
+        this.backgroundMusicSource.buffer = this.backgroundMusicFile;
+        this.backgroundMusicSource.loop = true; // 반복 재생
+        
+        // 볼륨 조절
+        const gainNode = this.audioContext.createGain();
+        gainNode.gain.value = this.masterVolume * this.musicVolume;
+        
+        this.backgroundMusicSource.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        this.backgroundMusicSource.start(0);
+        console.log('Background music started');
+    },
+    
+    stopMusic() {
+        // HTML5 Audio 정지
+        if (this.html5Audio) {
+            this.html5Audio.pause();
+            this.html5Audio.currentTime = 0;
+            console.log('HTML5 Background music stopped');
+        }
+        
+        // Web Audio API 정지
+        if (this.backgroundMusicSource) {
+            try {
+                this.backgroundMusicSource.stop();
+                this.backgroundMusicSource = null;
+                console.log('Web Audio Background music stopped');
+            } catch (error) {
+                console.log('Error stopping background music:', error);
+            }
+        }
+        if (this.backgroundMusic) {
+            this.backgroundMusic.stop();
+        }
+    }
+};
+
+// 오디오 시스템을 전역에서 접근 가능하도록 설정
+window.audio = audio;
+
+// 페이지 로드 시 오디오 시스템 초기화
+document.addEventListener('DOMContentLoaded', () => {
+    audio.init();
+    console.log('Audio system initialized');
+});
 
 // Fog effect variables
 let fogEffect = 0; // Value between 0~1, 1 is maximum fog
@@ -157,6 +503,33 @@ function drawPlayer() {
     
     ctx.restore(); // 무적 효과 restore
 }
+
+
+// 캐릭터 색상 변경 함수
+function changeCharacterColor(characterType) {
+    const colorMap = {
+        'blue': '#2196F3',
+        'yellow': '#FFEB3B',
+        'white': '#FFFFFF',
+        'green': '#4CAF50'
+    };
+    
+    if (colorMap[characterType]) {
+        player.color = colorMap[characterType];
+        console.log('Character color changed to:', characterType, player.color);
+    }
+}
+
+// 게임 시작 시 저장된 캐릭터 색상 불러오기
+function loadSavedCharacter() {
+    const savedCharacter = localStorage.getItem('selectedCharacter') || 'green';
+    changeCharacterColor(savedCharacter);
+}
+
+// 게임 객체를 전역으로 노출
+window.game = {
+    changeCharacter: changeCharacterColor
+};
 
 // 장애물 생성
 function createObstacle() {
@@ -1970,6 +2343,9 @@ function checkItemCollision() {
                 // 아이템 수집
                 item.collected = true;
                 
+                // 아이템 수집 사운드 재생
+                audio.play('itemCollectSound');
+                
                 if (item.type === 'invincible') {
                     // 무적 상태 활성화
                     invincible = true;
@@ -2559,19 +2935,27 @@ function drawPlayerTrail() {
 // 게임 오버
 async function gameOver() {
     gameRunning = false;
+    window.gameRunning = gameRunning; // 전역 상태 업데이트
     gameStatusElement.innerHTML = '<span class="game-over">Game Over!</span>';
     createParticles(player.x + player.width/2, player.y + player.height/2);
+    
+    // 게임 오버 사운드 재생
+    audio.play('gameOverSound');
+    // 배경음악 정지
+    audio.stopMusic();
     
     // 게임 오버 패널 표시
     finalScoreElement.textContent = score;
     gameOverPanel.style.display = 'block';
     
-    // 점수 저장 및 게임 수 증가 (로그인된 사용자인 경우)
-    if (typeof authManager !== 'undefined' && authManager.isAuthenticated()) {
-        const isNewRecord = await authManager.saveScore(score);
+    // 점수 저장 (로컬 스토리지 사용)
+    if (window.simpleAuth) {
+        const isNewRecord = window.simpleAuth.saveScore(score);
         
         if (isNewRecord) {
             document.getElementById('newRecord').style.display = 'block';
+            // 새 기록 사운드 재생
+            audio.play('newRecordSound');
         }
     }
 }
@@ -2579,6 +2963,17 @@ async function gameOver() {
 // 게임 재시작
 function restart() {
     gameRunning = true;
+    window.gameRunning = gameRunning; // 전역 상태 업데이트
+    
+    // 배경음악 다시 시작 (음소거가 해제되어 있을 때만)
+    setTimeout(() => {
+        if (audio.masterVolume > 0) {
+            audio.playMusic();
+            console.log('Background music restarted');
+        } else {
+            console.log('Background music not started - muted');
+        }
+    }, 500); // 0.5초 후 배경음악 시작
     score = 0;
     frameCount = 0;
     player.y = 200;
@@ -2620,6 +3015,8 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
         e.preventDefault();
         spacePressed = true;
+        // 점프 사운드 제거 (사용자 요청)
+        // audio.play('jumpSound');
     } else if (e.code === 'KeyR' && !gameRunning) {
         restart();
     }
@@ -2637,6 +3034,8 @@ canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     touchPressed = true;
     spacePressed = true; // 터치와 스페이스바 동일하게 처리
+    // 점프 사운드 제거 (사용자 요청)
+    // audio.play('jumpSound');
 });
 
 canvas.addEventListener('touchend', (e) => {
@@ -2655,6 +3054,8 @@ canvas.addEventListener('touchcancel', (e) => {
 canvas.addEventListener('mousedown', (e) => {
     e.preventDefault();
     spacePressed = true;
+    // 점프 사운드 제거 (사용자 요청)
+    // audio.play('jumpSound');
 });
 
 canvas.addEventListener('mouseup', (e) => {
@@ -2764,4 +3165,5 @@ canvas.style.webkitTapHighlightColor = 'transparent'; // 터치 하이라이트 
 canvas.style.pointerEvents = 'auto'; // 클릭은 허용하되 다른 이벤트 최소화
 
 // 게임 시작
+loadSavedCharacter(); // 저장된 캐릭터 색상 불러오기
 gameLoop();
