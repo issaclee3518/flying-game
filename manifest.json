@@ -1,7 +1,7 @@
 {
-  "name": "Lost in Ashes",
-  "short_name": "Lost in Ashes",
-  "description": "A desert flight game with day/night cycle",
+  "name": "Desert Runner: Sands of Survival",
+  "short_name": "Desert Runner",
+  "description": "Survive the treacherous desert in this exciting endless runner game. Navigate through cacti, birds, and obstacles while collecting power-ups. Features day/night cycle and competitive leaderboards.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,12 +9,12 @@
   "orientation": "landscape",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjNENBRjUwIi8+Cjx0ZXh0IHg9Ijk2IiB5PSIxMDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuKdpDwvdGV4dD4KPC9zdmc+",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZCQzQ3O3N0b3Atb3BhY2l0eToxIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNGRjgwMDA7c3RvcC1vcGFjaXR5OjEiIC8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9InVybCgjZ3JhZCkiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI4MCIgcj0iMjUiIGZpbGw9IiNGRkQ3MDAiLz4KPGVsbGlwc2UgY3g9IjQwIiBjeT0iMTIwIiByeD0iMTUiIHJ5PSIyMCIgZmlsbD0iIzJENzMyMCIvPgo8ZWxsaXBzZSBjeD0iMTUyIiBjeT0iMTMwIiByeD0iMTIiIHJ5PSIxOCIgZmlsbD0iIzJENzMyMCIvPgo8ZWxsaXBzZSBjeD0iMTIwIiBjeT0iMTQwIiByeD0iMTAiIHJ5PSIxNSIgZmlsbD0iIzJENzMyMCIvPgo8Y2lyY2xlIGN4PSI3MCIgY3k9IjEwMCIgcj0iOCIgZmlsbD0iIzI4QjQ2MyIvPgo8Y2lyY2xlIGN4PSIxMzAiIGN5PSI5MCIgcj0iNiIgZmlsbD0iIzI4QjQ2MyIvPgo8L3N2Zz4=",
       "sizes": "192x192",
       "type": "image/svg+xml"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSIjNENBRjUwIi8+Cjx0ZXh0IHg9IjI1NiIgeT0iMjgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTI4IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+4p2kPC90ZXh0Pgo8L3N2Zz4=",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZCQzQ3O3N0b3Atb3BhY2l0eToxIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNGRjgwMDA7c3RvcC1vcGFjaXR5OjEiIC8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGZpbGw9InVybCgjZ3JhZCkiLz4KPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjE0IiByPSI2NiIgZmlsbD0iI0ZGRDcwMCIvPgo8ZWxsaXBzZSBjeD0iMTA3IiBjeT0iMzIwIiByeD0iNDAiIHJ5PSI1MyIgZmlsbD0iIzJENzMyMCIvPgo8ZWxsaXBzZSBjeD0iNDA1IiBjeT0iMzQ3IiByeD0iMzIiIHJ5PSI0OCIgZmlsbD0iIzJENzMyMCIvPgo8ZWxsaXBzZSBjeD0iMzIwIiBjeT0iMzczIiByeD0iMjciIHJ5PSI0MCIgZmlsbD0iIzJENzMyMCIvPgo8Y2lyY2xlIGN4PSIxODciIGN5PSIyNjciIHI9IjIxIiBmaWxsPSIjMjhCNDYzIi8+CjxjaXJjbGUgY3g9IjM0NyIgY3k9IjI0MCIgcj0iMTYiIGZpbGw9IiMyOEI0NjMiLz4KPC9zdmc+",
       "sizes": "512x512",
       "type": "image/svg+xml"
     }

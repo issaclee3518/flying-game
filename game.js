@@ -101,6 +101,11 @@ const MIN_GAP = 140; // 간격 늘림
 const MAX_GAP = 200; // 간격 늘림
 const CLOUD_SPEED = 200; // 구름 속도 - 더 빠르게!
 
+// 성능 최적화 설정
+const MAX_PARTICLES = 50; // 최대 파티클 수 제한
+const MAX_TRAIL_LENGTH = 30; // 자취 길이 제한
+const PERFORMANCE_MODE = false; // 성능 모드 (낮은 사양 기기용)
+
 // 플레이어 그리기
 function drawPlayer() {
     ctx.save();
@@ -1865,6 +1870,11 @@ function updateParticles() {
     const currentTime = Date.now();
     const deltaTime = Math.max(currentTime - lastFrameTime, 1);
     
+    // 성능 최적화: 파티클 수 제한
+    if (particles.length > MAX_PARTICLES) {
+        particles = particles.slice(-MAX_PARTICLES);
+    }
+    
     particles.forEach((particle, index) => {
         // 시간 기반 이동
         particle.x += particle.velocityX * (deltaTime / 16.67); // 60fps 기준 정규화
@@ -2484,6 +2494,11 @@ function updatePlayerTrail() {
         life: 180, // 180프레임 동안 유지 (3초, 더욱 길게)
         maxLife: 180
     });
+    
+    // 성능 최적화: 자취 길이 제한
+    if (playerTrail.length > MAX_TRAIL_LENGTH) {
+        playerTrail = playerTrail.slice(-MAX_TRAIL_LENGTH);
+    }
     
     // 자취를 왼쪽으로 이동시키기 (장애물과 같은 속도)
     const currentTime = Date.now();

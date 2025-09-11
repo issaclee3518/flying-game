@@ -1,7 +1,7 @@
 {
-  "name": "desert-flight-game",
+  "name": "desert-runner-sands-of-survival",
   "version": "1.0.0",
-  "description": "Desert flight game with user authentication and score tracking",
+  "description": "Desert Runner: Sands of Survival - An exciting endless runner game with Firebase authentication, leaderboards, and day/night cycle",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
