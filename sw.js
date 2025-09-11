@@ -1,4 +1,4 @@
-const CACHE_NAME = 'desert-runner-v1';
+const CACHE_NAME = 'lost-in-ashes-v1';
 const urlsToCache = [
   '/',
   '/index.html',

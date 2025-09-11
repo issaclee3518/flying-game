@@ -1,7 +1,7 @@
 {
-  "name": "desert-runner-sands-of-survival",
+  "name": "lost-in-ashes",
   "version": "1.0.0",
-  "description": "Desert Runner: Sands of Survival - An exciting endless runner game with Firebase authentication, leaderboards, and day/night cycle",
+  "description": "Lost in Ashes - An exciting endless runner game with Firebase authentication, leaderboards, and day/night cycle",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
