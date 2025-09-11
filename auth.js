@@ -274,7 +274,8 @@ class AuthManager {
             const snapshot = await get(usersRef);
             
             if (!snapshot.exists()) {
-                document.getElementById('userRank').textContent = 'Unranked';
+                // 데이터가 없으면 마지막 순위로 표시
+                document.getElementById('userRank').textContent = '#1';
                 return;
             }
             
@@ -297,22 +298,24 @@ class AuthManager {
             // 현재 사용자 순위 찾기
             const userRank = allUsers.findIndex(user => user.uid === this.user.uid) + 1;
             
-            // 순위 표시 (10위 밖이어도 전체 순위 표시)
+            // 순위 표시 (모든 순위 표시)
             if (userRank > 0) {
                 document.getElementById('userRank').textContent = `#${userRank}`;
             } else {
-                document.getElementById('userRank').textContent = 'Unranked';
+                // 사용자 데이터가 없으면 0점으로 처리하여 마지막 순위 표시
+                const totalUsers = allUsers.length;
+                document.getElementById('userRank').textContent = `#${totalUsers + 1}`;
             }
                 
-            console.log('순위표 로드 완료:', {
+            console.log('Leaderboard loaded:', {
                 totalUsers: allUsers.length,
                 userRank: userRank,
                 userScore: allUsers.find(user => user.uid === this.user.uid)?.bestScore || 0
             });
                 
         } catch (error) {
-            console.error('랭킹 로드 실패:', error);
-            document.getElementById('userRank').textContent = '순위 외';
+            console.error('Leaderboard load failed:', error);
+            document.getElementById('userRank').textContent = '#1';
         }
     }
 

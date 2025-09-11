@@ -582,30 +582,30 @@
     </style>
 </head>
 <body>
-    <!-- Firebase 설정 안내 패널 -->
+    <!-- Firebase Setup Guide Panel -->
     <div id="firebaseSetupPanel" class="firebase-setup-panel" style="display: none;">
         <div class="setup-container">
-            <h2>🔧 Firebase 설정이 필요합니다</h2>
-            <p>회원가입/로그인 기능을 사용하려면 Firebase Console에서 설정을 완료해야 합니다.</p>
+            <h2>🔧 Firebase Setup Required</h2>
+            <p>To use sign up/login features, you need to complete Firebase Console setup.</p>
             <div class="setup-steps">
                 <div class="step">
-                    <strong>1단계:</strong> <a href="https://console.firebase.google.com/project/mini-game-89572" target="_blank">Firebase Console</a> 열기
+                    <strong>Step 1:</strong> Open <a href="https://console.firebase.google.com/project/mini-game-89572" target="_blank">Firebase Console</a>
                 </div>
                 <div class="step">
-                    <strong>2단계:</strong> Authentication > Sign-in method > Email/Password > Enable
+                    <strong>Step 2:</strong> Authentication > Sign-in method > Email/Password > Enable
                 </div>
                 <div class="step">
-                    <strong>3단계:</strong> Authentication > Sign-in method > Google > Enable
+                    <strong>Step 3:</strong> Authentication > Sign-in method > Google > Enable
                 </div>
                 <div class="step">
-                    <strong>4단계:</strong> Realtime Database > Create Database > Start in test mode
+                    <strong>Step 4:</strong> Realtime Database > Create Database > Start in test mode
                 </div>
             </div>
-            <button id="setupCompleteButton" class="setup-button">설정 완료</button>
+            <button id="setupCompleteButton" class="setup-button">Setup Complete</button>
         </div>
     </div>
 
-    <!-- 로그인/회원가입 패널 -->
+    <!-- Login/Sign Up Panel -->
     <div id="authPanel" class="auth-panel">
         <div class="auth-container">
             <div class="auth-tabs">
@@ -613,7 +613,7 @@
                 <button id="registerTab" class="auth-tab">Sign Up</button>
             </div>
             
-            <!-- 로그인 폼 -->
+            <!-- Login Form -->
             <div id="loginForm" class="auth-form active">
                 <h2>Login</h2>
                 <form id="loginFormElement">
@@ -639,7 +639,7 @@
                 </button>
             </div>
             
-            <!-- 회원가입 폼 -->
+            <!-- Sign Up Form -->
             <div id="registerForm" class="auth-form">
                 <h2>Sign Up</h2>
                 <form id="registerFormElement">
@@ -674,7 +674,7 @@
         </div>
     </div>
 
-    <!-- 사용자 정보 패널 -->
+    <!-- User Info Panel -->
     <div id="userPanel" class="user-panel" style="display: none;">
         <div class="user-info">
             <div class="user-header">
@@ -727,10 +727,10 @@
         </div>
     </div>
 
-    <!-- Firebase 설정 -->
+    <!-- Firebase Configuration -->
     <script src="firebase-config.js"></script>
     <script>
-        // Service Worker 등록 (PWA 기능)
+        // Service Worker Registration (PWA Feature)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
@@ -744,39 +744,39 @@
         }
     </script>
     <script>
-        // Firebase 초기화
+        // Firebase Initialization
         document.addEventListener('DOMContentLoaded', async function() {
             const success = await window.initializeFirebase();
             if (!success) {
-                alert('Firebase 초기화에 실패했습니다. 페이지를 새로고침해주세요.');
+                alert('Firebase initialization failed. Please refresh the page.');
             } else {
-                console.log('Firebase가 성공적으로 초기화되었습니다.');
-                console.log('⚠️ Firebase Console 설정이 필요합니다:');
+                console.log('Firebase initialized successfully.');
+                console.log('⚠️ Firebase Console setup required:');
                 console.log('🔗 https://console.firebase.google.com/project/mini-game-89572');
                 console.log('');
-                console.log('필수 설정:');
+                console.log('Required setup:');
                 console.log('1. Authentication > Sign-in method > Email/Password > Enable');
                 console.log('2. Authentication > Sign-in method > Google > Enable');
                 console.log('3. Realtime Database > Create Database > Start in test mode');
                 console.log('');
-                console.log('설정 완료 후 회원가입/로그인을 시도해주세요.');
+                console.log('Try sign up/login after completing the setup.');
                 
-                // AuthManager 초기화
+                // AuthManager Initialization
                 const authManager = await window.initializeAuthManager();
                 if (!authManager) {
-                    console.error('AuthManager 초기화에 실패했습니다.');
+                    console.error('AuthManager initialization failed.');
                 }
                 
-                // Firebase 설정 상태 확인 (5초 후)
+                // Firebase Setup Status Check (after 5 seconds)
                 setTimeout(async () => {
                     try {
-                        // 간단한 테스트로 Firebase 설정 상태 확인
+                        // Simple test to check Firebase setup status
                         if (window.firebaseAuth) {
-                            // Firebase 설정이 올바른지 확인하기 위한 테스트
-                            console.log('Firebase 설정 확인 중...');
+                            // Test to verify Firebase setup is correct
+                            console.log('Checking Firebase setup...');
                         }
                     } catch (error) {
-                        console.log('Firebase 설정 확인 실패:', error);
+                        console.log('Firebase setup check failed:', error);
                     }
                 }, 5000);
             }
@@ -798,43 +798,43 @@
             }
         }
         
-        // Google 로그인 기능
+        // Google Login Function
         async function signInWithGoogle() {
             try {
-                console.log('=== Google 로그인 디버깅 정보 ===');
+                console.log('=== Google Login Debug Info ===');
                 console.log('Firebase Auth:', window.firebaseAuth);
                 console.log('Google Provider:', window.googleProvider);
                 console.log('SignInWithPopup:', window.signInWithPopup);
                 console.log('Firebase Database:', window.firebaseDatabase);
                 console.log('Firebase Analytics:', window.firebaseAnalytics);
                 
-                // Firebase가 초기화되었는지 확인
+                // Check if Firebase is initialized
                 if (!window.firebaseAuth) {
-                    throw new Error('Firebase Auth가 초기화되지 않았습니다.');
+                    throw new Error('Firebase Auth is not initialized.');
                 }
                 if (!window.googleProvider) {
-                    throw new Error('Google Provider가 초기화되지 않았습니다.');
+                    throw new Error('Google Provider is not initialized.');
                 }
                 if (!window.signInWithPopup) {
-                    throw new Error('SignInWithPopup 함수가 없습니다.');
+                    throw new Error('SignInWithPopup function is not available.');
                 }
                 
-                // Google 로그인 팝업 설정
+                // Google Login Popup Setup
                 const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider, {
                     popupRedirectUri: window.location.origin
                 });
                 const user = result.user;
                 
-                // Firebase 함수들을 동적으로 import
+                // Dynamically import Firebase functions
                 const { ref, get, set } = await import('https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js');
                 const { logEvent } = await import('https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js');
                 
-                // 사용자 정보를 Realtime Database에 저장 (새 사용자인 경우)
+                // Save user info to Realtime Database (for new users)
                 const userRef = ref(window.firebaseDatabase, `users/${user.uid}`);
                 const snapshot = await get(userRef);
                 
                 if (!snapshot.exists()) {
-                    // 새 사용자인 경우 데이터베이스에 정보 저장
+                    // Save info to database for new users
                     await set(userRef, {
                         username: user.displayName || user.email.split('@')[0],
                         email: user.email,
@@ -845,14 +845,14 @@
                     });
                 }
                 
-                // Analytics 이벤트 로그
+                // Analytics Event Log
                 if (window.firebaseAnalytics) {
                     logEvent(window.firebaseAnalytics, 'login', {
                         method: 'google'
                     });
                 }
                 
-                // 성공 메시지
+                // Success Message
                 console.log('Google login successful:', user.displayName);
                 alert('Google login successful!');
                 
@@ -911,7 +911,7 @@
             }
         }
         
-        // 폼 유효성 검사
+        // Form Validation
         function validateForm(formType) {
             if (formType === 'register') {
                 const password = document.getElementById('registerPassword').value;

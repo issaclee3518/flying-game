@@ -33,9 +33,9 @@ function updateControlText() {
     const isMobile = window.innerWidth <= 768;
     
     if (isMobile) {
-        controlText.textContent = '화면을 터치해서 위로 날아오르세요!';
+        controlText.textContent = 'Touch the screen to fly up!';
     } else {
-        controlText.textContent = '스페이스바 또는 클릭으로 점프하세요!';
+        controlText.textContent = 'Press SPACE or click to jump!';
     }
 }
 
@@ -2544,7 +2544,7 @@ function drawPlayerTrail() {
 // 게임 오버
 async function gameOver() {
     gameRunning = false;
-    gameStatusElement.innerHTML = '<span class="game-over">게임 오버!</span>';
+    gameStatusElement.innerHTML = '<span class="game-over">Game Over!</span>';
     createParticles(player.x + player.width/2, player.y + player.height/2);
     
     // 게임 오버 패널 표시
