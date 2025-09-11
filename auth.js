@@ -269,45 +269,50 @@ class AuthManager {
 
     async loadLeaderboard() {
         try {
-            const leaderboardQuery = query(
-                ref(window.firebaseDatabase, 'users'),
-                orderByChild('bestScore'),
-                limitToLast(10)
-            );
+            // 모든 사용자 데이터 가져오기
+            const usersRef = ref(window.firebaseDatabase, 'users');
+            const snapshot = await get(usersRef);
             
-            const snapshot = await get(leaderboardQuery);
-            const leaderboard = [];
-            
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                const sortedUsers = Object.entries(data)
-                    .map(([uid, userData]) => ({
-                        uid,
-                        username: userData.username,
-                        bestScore: userData.bestScore || 0
-                    }))
-                    .sort((a, b) => b.bestScore - a.bestScore)
-                    .slice(0, 10);
-                
-                sortedUsers.forEach((user, index) => {
-                    leaderboard.push({
-                        rank: index + 1,
-                        username: user.username,
-                        score: user.bestScore
-                    });
-                });
+            if (!snapshot.exists()) {
+                document.getElementById('userRank').textContent = '순위 외';
+                return;
             }
-
-            // 사용자 순위 찾기
-            const userRank = leaderboard.findIndex(
-                entry => entry.username === this.user.displayName
-            ) + 1;
             
-            document.getElementById('userRank').textContent = 
-                userRank > 0 ? `${userRank}위` : '순위 외';
+            const data = snapshot.val();
+            const allUsers = Object.entries(data)
+                .map(([uid, userData]) => ({
+                    uid,
+                    username: userData.username,
+                    bestScore: userData.bestScore || 0
+                }))
+                .sort((a, b) => b.bestScore - a.bestScore);
+            
+            // 상위 10명 순위표 생성
+            const leaderboard = allUsers.slice(0, 10).map((user, index) => ({
+                rank: index + 1,
+                username: user.username,
+                score: user.bestScore
+            }));
+            
+            // 현재 사용자 순위 찾기
+            const userRank = allUsers.findIndex(user => user.uid === this.user.uid) + 1;
+            
+            // 순위 표시 (10위 밖이어도 전체 순위 표시)
+            if (userRank > 0) {
+                document.getElementById('userRank').textContent = `${userRank}위`;
+            } else {
+                document.getElementById('userRank').textContent = '순위 외';
+            }
+                
+            console.log('순위표 로드 완료:', {
+                totalUsers: allUsers.length,
+                userRank: userRank,
+                userScore: allUsers.find(user => user.uid === this.user.uid)?.bestScore || 0
+            });
                 
         } catch (error) {
             console.error('랭킹 로드 실패:', error);
+            document.getElementById('userRank').textContent = '순위 외';
         }
     }
 
