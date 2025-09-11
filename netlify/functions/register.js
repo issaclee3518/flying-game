@@ -1,69 +1,8 @@
-// Netlify Function for registration
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+// Netlify Function for registration (Firebase Auth + Realtime Database 사용)
+const { admin, database } = require('../../firebase-admin-config.js');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || '350600';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
-
-// MongoDB 연결 (Netlify Functions 최적화)
-let isConnected = false;
-
-async function connectDB() {
-    if (isConnected) {
-        return mongoose.connection.readyState === 1;
-    }
-    
-    try {
-        await mongoose.connect(MONGODB_URI, {
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-        });
-        isConnected = true;
-        console.log('MongoDB 연결 성공!');
-        return true;
-    } catch (err) {
-        console.error('MongoDB 연결 오류:', err);
-        isConnected = false;
-        return false;
-    }
-}
-
-// 스키마 정의
-const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        minlength: 3,
-        maxlength: 20
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6
-    },
-    bestScore: {
-        type: Number,
-        default: 0
-    },
-    totalGames: {
-        type: Number,
-        default: 0
-    }
-}, {
-    timestamps: true
-});
-
-const User = mongoose.model('User', userSchema);
 
 exports.handler = async (event, context) => {
     // CORS headers
@@ -100,76 +39,93 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // MongoDB 연결 시도
-        const dbConnected = await connectDB();
-        if (!dbConnected) {
-            console.error('MongoDB 연결 실패');
+        // 입력 검증
+        if (password.length < 6) {
             return {
-                statusCode: 500,
+                statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: '데이터베이스 연결에 실패했습니다' })
+                body: JSON.stringify({ error: '비밀번호는 6자 이상이어야 합니다' })
             };
         }
 
-        // 중복 사용자명 확인
-        const existingUser = await User.findOne({ 
-            $or: [
-                { username: username },
-                { email: email }
-            ]
-        });
-
-        if (existingUser) {
-            if (existingUser.username === username) {
-                return {
-                    statusCode: 409,
-                    headers,
-                    body: JSON.stringify({ error: '이미 사용 중인 사용자명입니다' })
-                };
-            }
-            if (existingUser.email === email) {
-                return {
-                    statusCode: 409,
-                    headers,
-                    body: JSON.stringify({ error: '이미 사용 중인 이메일입니다' })
-                };
-            }
+        if (username.length < 3 || username.length > 20) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: '사용자명은 3-20자 사이여야 합니다' })
+            };
         }
 
-        // 비밀번호 해싱
-        const saltRounds = 12;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        // 이메일 형식 검증
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: '올바른 이메일 형식이 아닙니다' })
+            };
+        }
 
-        // 사용자 생성
-        const user = new User({
-            username,
-            email,
-            password: hashedPassword
-        });
+        // Firebase Admin SDK로 사용자 생성
+        try {
+            const userRecord = await admin.auth().createUser({
+                email: email,
+                password: password,
+                displayName: username
+            });
 
-        await user.save();
-        console.log('사용자 저장 성공:', user.username);
+            // Realtime Database에 사용자 정보 저장
+            await database.ref(`users/${userRecord.uid}`).set({
+                username: username,
+                email: email,
+                bestScore: 0,
+                totalGames: 0,
+                createdAt: admin.database.ServerValue.TIMESTAMP
+            });
 
-        // JWT 토큰 생성
-        const token = jwt.sign(
-            { userId: user._id, username: user.username },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+            // JWT 토큰 생성
+            const token = jwt.sign(
+                { 
+                    userId: userRecord.uid, 
+                    email: userRecord.email,
+                    username: username
+                },
+                JWT_SECRET,
+                { expiresIn: '24h' }
+            );
 
-        return {
-            statusCode: 201,
-            headers,
-            body: JSON.stringify({
-                message: '회원가입이 완료되었습니다',
-                token,
-                user: { 
-                    id: user._id, 
-                    username: user.username, 
-                    email: user.email 
-                }
-            })
-        };
+            return {
+                statusCode: 201,
+                headers,
+                body: JSON.stringify({
+                    message: '회원가입이 완료되었습니다',
+                    token: token,
+                    user: { 
+                        id: userRecord.uid,
+                        username: username, 
+                        email: email 
+                    }
+                })
+            };
+
+        } catch (authError) {
+            console.error('Firebase 사용자 생성 오류:', authError);
+            
+            let errorMessage = '회원가입에 실패했습니다';
+            if (authError.code === 'auth/email-already-exists') {
+                errorMessage = '이미 사용 중인 이메일입니다';
+            } else if (authError.code === 'auth/invalid-email') {
+                errorMessage = '유효하지 않은 이메일 형식입니다';
+            } else if (authError.code === 'auth/weak-password') {
+                errorMessage = '비밀번호는 6자 이상이어야 합니다';
+            }
+
+            return {
+                statusCode: 409,
+                headers,
+                body: JSON.stringify({ error: errorMessage })
+            };
+        }
 
     } catch (error) {
         console.error('회원가입 오류:', error);

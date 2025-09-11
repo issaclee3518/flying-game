@@ -1,86 +1,8 @@
-// Netlify Function for saving game scores
-const mongoose = require('mongoose');
+// Netlify Function for saving game scores (Firebase Realtime Database 사용)
+const { admin, database } = require('../../firebase-admin-config.js');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || '350600';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://issaclee6320_db_user:ok350600@cluster0.lp1ajav.mongodb.net/desert-flight-game?retryWrites=true&w=majority';
-
-// MongoDB 연결
-let isConnected = false;
-
-async function connectDB() {
-    if (isConnected) return;
-    
-    try {
-        await mongoose.connect(MONGODB_URI);
-        isConnected = true;
-        console.log('MongoDB 연결 성공!');
-    } catch (err) {
-        console.error('MongoDB 연결 오류:', err);
-        throw err;
-    }
-}
-
-// 사용자 스키마 정의
-const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        minlength: 3,
-        maxlength: 20
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6
-    },
-    bestScore: {
-        type: Number,
-        default: 0
-    },
-    totalGames: {
-        type: Number,
-        default: 0
-    }
-}, {
-    timestamps: true
-});
-
-const User = mongoose.model('User', userSchema);
-
-// 점수 스키마 정의
-const scoreSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    username: {
-        type: String,
-        required: true
-    },
-    score: {
-        type: Number,
-        required: true
-    },
-    gameDate: {
-        type: Date,
-        default: Date.now
-    }
-}, {
-    timestamps: true
-});
-
-const Score = mongoose.model('Score', scoreSchema);
 
 exports.handler = async (event, context) => {
     // CORS headers
@@ -130,12 +52,9 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // MongoDB 연결
-        await connectDB();
-
-        // 사용자 정보 가져오기
-        const user = await User.findById(decoded.userId);
-        if (!user) {
+        // Realtime Database에서 사용자 정보 가져오기
+        const userSnapshot = await database.ref(`users/${decoded.userId}`).once('value');
+        if (!userSnapshot.exists()) {
             return {
                 statusCode: 404,
                 headers,
@@ -143,23 +62,29 @@ exports.handler = async (event, context) => {
             };
         }
 
+        const userData = userSnapshot.val();
+
         // 점수 저장
-        const newScore = new Score({
+        const scoreRef = database.ref('scores').push();
+        await scoreRef.set({
             userId: decoded.userId,
             username: decoded.username,
-            score: score
+            score: score,
+            gameDate: admin.database.ServerValue.TIMESTAMP
         });
-
-        await newScore.save();
 
         // 사용자 최고기록 업데이트
         let isNewRecord = false;
-        if (score > user.bestScore) {
-            user.bestScore = score;
+        const updates = {
+            totalGames: (userData.totalGames || 0) + 1
+        };
+
+        if (score > (userData.bestScore || 0)) {
+            updates.bestScore = score;
             isNewRecord = true;
         }
-        user.totalGames += 1;
-        await user.save();
+
+        await database.ref(`users/${decoded.userId}`).update(updates);
 
         console.log(`점수 저장 완료: ${decoded.username} - ${score}점 (새 기록: ${isNewRecord})`);
 
@@ -169,13 +94,13 @@ exports.handler = async (event, context) => {
             body: JSON.stringify({
                 message: '점수가 저장되었습니다',
                 score: {
-                    id: newScore._id,
-                    score: newScore.score,
-                    gameDate: newScore.gameDate
+                    id: scoreRef.id,
+                    score: score,
+                    gameDate: new Date()
                 },
                 userStats: {
-                    bestScore: user.bestScore,
-                    totalGames: user.totalGames,
+                    bestScore: isNewRecord ? score : userData.bestScore,
+                    totalGames: (userData.totalGames || 0) + 1,
                     isNewRecord: isNewRecord
                 }
             })

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>날아다니는 캐릭터 게임</title>
+    <title>Lost in Ashes</title>
     <style>
         body {
             margin: 0;
@@ -211,35 +211,308 @@
             margin-top: 10px;
             font-size: 14px;
         }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+        }
+        
+        .auth-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-button:hover {
+            background: linear-gradient(135deg, #1976D2, #1565C0);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        
+        .auth-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .auth-divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .auth-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #ddd;
+        }
+        
+        .auth-divider span {
+            background: white;
+            padding: 0 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .google-signin-button {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .google-signin-button:hover {
+            background: #f5f5f5;
+            border-color: #2196F3;
+            transform: translateY(-1px);
+        }
+        
+        .google-icon {
+            font-size: 18px;
+        }
+        
+        /* Firebase 설정 패널 */
+        .firebase-setup-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .setup-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .setup-container h2 {
+            color: #2196F3;
+            margin-bottom: 15px;
+        }
+        
+        .setup-container p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .setup-steps {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .step a {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .step a:hover {
+            text-decoration: underline;
+        }
+        
+        .setup-button {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .setup-button:hover {
+            background: linear-gradient(135deg, #1976D2, #1565C0);
+            transform: translateY(-2px);
+        }
+        
+        /* 사용자 패널 개선 - 가로 레이아웃 */
+        .user-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .user-details {
+            flex: 1;
+        }
+        
+        .user-header h3 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .user-stats-horizontal {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item-horizontal {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 11px;
+        }
+        
+        .stat-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #2196F3;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .profile-button {
+            flex: 1;
+            padding: 4px 8px;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .profile-button:hover {
+            background: #e0e0e0;
+            border-color: #2196F3;
+        }
 
         /* 사용자 정보 패널 */
         .user-panel {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 5px;
+            right: 5px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             z-index: 1000;
             min-width: 200px;
+            max-width: 280px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
         }
 
         .user-info {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .logout-button {
             background: #f44336;
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 4px 8px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 500;
         }
 
         .score-info {
@@ -257,6 +530,29 @@
     </style>
 </head>
 <body>
+    <!-- Firebase 설정 안내 패널 -->
+    <div id="firebaseSetupPanel" class="firebase-setup-panel" style="display: none;">
+        <div class="setup-container">
+            <h2>🔧 Firebase 설정이 필요합니다</h2>
+            <p>회원가입/로그인 기능을 사용하려면 Firebase Console에서 설정을 완료해야 합니다.</p>
+            <div class="setup-steps">
+                <div class="step">
+                    <strong>1단계:</strong> <a href="https://console.firebase.google.com/project/mini-game-89572" target="_blank">Firebase Console</a> 열기
+                </div>
+                <div class="step">
+                    <strong>2단계:</strong> Authentication > Sign-in method > Email/Password > Enable
+                </div>
+                <div class="step">
+                    <strong>3단계:</strong> Authentication > Sign-in method > Google > Enable
+                </div>
+                <div class="step">
+                    <strong>4단계:</strong> Realtime Database > Create Database > Start in test mode
+                </div>
+            </div>
+            <button id="setupCompleteButton" class="setup-button">설정 완료</button>
+        </div>
+    </div>
+
     <!-- 로그인/회원가입 패널 -->
     <div id="authPanel" class="auth-panel">
         <div class="auth-container">
@@ -269,23 +565,59 @@
             <div id="loginForm" class="auth-form active">
                 <h2>로그인</h2>
                 <form id="loginFormElement">
-                    <input type="text" id="loginUsername" placeholder="사용자명" required>
-                    <input type="password" id="loginPassword" placeholder="비밀번호" required>
-                    <button type="submit" class="auth-button">로그인</button>
+                    <div class="input-group">
+                        <input type="email" id="loginEmail" placeholder="이메일" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="loginPassword" placeholder="비밀번호" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+                    </div>
+                    <button type="submit" class="auth-button" id="loginButton">
+                        <span class="button-text">로그인</span>
+                        <span class="loading-spinner" style="display: none;">⏳</span>
+                    </button>
                 </form>
                 <div id="loginError" class="error-message"></div>
+                <div class="auth-divider">
+                    <span>또는</span>
+                </div>
+                <button class="google-signin-button" onclick="signInWithGoogle()">
+                    <span class="google-icon">🔍</span>
+                    Google로 로그인
+                </button>
             </div>
             
             <!-- 회원가입 폼 -->
             <div id="registerForm" class="auth-form">
                 <h2>회원가입</h2>
                 <form id="registerFormElement">
-                    <input type="text" id="registerUsername" placeholder="사용자명" required>
-                    <input type="email" id="registerEmail" placeholder="이메일" required>
-                    <input type="password" id="registerPassword" placeholder="비밀번호 (6자 이상)" required>
-                    <button type="submit" class="auth-button">회원가입</button>
+                    <div class="input-group">
+                        <input type="text" id="registerUsername" placeholder="사용자명 (3-20자)" required minlength="3" maxlength="20">
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="registerEmail" placeholder="이메일" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="registerPassword" placeholder="비밀번호 (6자 이상)" required minlength="6">
+                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">👁️</button>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="registerPasswordConfirm" placeholder="비밀번호 확인" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('registerPasswordConfirm')">👁️</button>
+                    </div>
+                    <button type="submit" class="auth-button" id="registerButton">
+                        <span class="button-text">회원가입</span>
+                        <span class="loading-spinner" style="display: none;">⏳</span>
+                    </button>
                 </form>
                 <div id="registerError" class="error-message"></div>
+                <div class="auth-divider">
+                    <span>또는</span>
+                </div>
+                <button class="google-signin-button" onclick="signInWithGoogle()">
+                    <span class="google-icon">🔍</span>
+                    Google로 회원가입
+                </button>
             </div>
         </div>
     </div>
@@ -293,17 +625,37 @@
     <!-- 사용자 정보 패널 -->
     <div id="userPanel" class="user-panel" style="display: none;">
         <div class="user-info">
-            <span id="userWelcome">환영합니다!</span>
-            <button id="logoutButton" class="logout-button">로그아웃</button>
-        </div>
-        <div class="score-info">
-            <div id="bestScore">최고 점수: <span id="bestScoreValue">0</span></div>
-            <div id="leaderboard">랭킹: <span id="userRank">-</span></div>
+            <div class="user-header">
+                <div class="user-avatar">
+                    <span id="userAvatar">👤</span>
+                </div>
+                <div class="user-details">
+                    <h3 id="userWelcome">환영합니다!</h3>
+                    <div class="user-stats-horizontal">
+                        <span class="stat-item-horizontal">
+                            <span class="stat-label">최고:</span>
+                            <span class="stat-value" id="bestScoreValue">0</span>
+                        </span>
+                        <span class="stat-item-horizontal">
+                            <span class="stat-label">순위:</span>
+                            <span class="stat-value" id="userRank">순위 외</span>
+                        </span>
+                        <span class="stat-item-horizontal">
+                            <span class="stat-label">게임:</span>
+                            <span class="stat-value" id="totalGames">0</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button id="logoutButton" class="logout-button">로그아웃</button>
+                <button id="profileButton" class="profile-button">프로필</button>
+            </div>
         </div>
     </div>
 
     <div class="game-container">
-        <h1>🚁 날아다니는 캐릭터 게임</h1>
+        <h1>🔥 Lost in Ashes</h1>
         <div class="game-canvas-container">
             <canvas id="gameCanvas" width="800" height="400"></canvas>
             <div id="gameOverPanel" class="game-over-panel">
@@ -323,7 +675,212 @@
         </div>
     </div>
 
-    <script src="auth.js"></script>
+    <!-- Firebase 설정 -->
+    <script src="firebase-config.js"></script>
+    <script>
+        // Firebase 초기화
+        document.addEventListener('DOMContentLoaded', async function() {
+            const success = await window.initializeFirebase();
+            if (!success) {
+                alert('Firebase 초기화에 실패했습니다. 페이지를 새로고침해주세요.');
+            } else {
+                console.log('Firebase가 성공적으로 초기화되었습니다.');
+                console.log('⚠️ Firebase Console 설정이 필요합니다:');
+                console.log('🔗 https://console.firebase.google.com/project/mini-game-89572');
+                console.log('');
+                console.log('필수 설정:');
+                console.log('1. Authentication > Sign-in method > Email/Password > Enable');
+                console.log('2. Authentication > Sign-in method > Google > Enable');
+                console.log('3. Realtime Database > Create Database > Start in test mode');
+                console.log('');
+                console.log('설정 완료 후 회원가입/로그인을 시도해주세요.');
+                
+                // AuthManager 초기화
+                const authManager = await window.initializeAuthManager();
+                if (!authManager) {
+                    console.error('AuthManager 초기화에 실패했습니다.');
+                }
+                
+                // Firebase 설정 상태 확인 (5초 후)
+                setTimeout(async () => {
+                    try {
+                        // 간단한 테스트로 Firebase 설정 상태 확인
+                        if (window.firebaseAuth) {
+                            // Firebase 설정이 올바른지 확인하기 위한 테스트
+                            console.log('Firebase 설정 확인 중...');
+                        }
+                    } catch (error) {
+                        console.log('Firebase 설정 확인 실패:', error);
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+    
+    <script>
+        // 비밀번호 표시/숨기기 기능
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+        
+        // Google 로그인 기능
+        async function signInWithGoogle() {
+            try {
+                // Firebase가 초기화되었는지 확인
+                if (!window.firebaseAuth || !window.googleProvider || !window.signInWithPopup) {
+                    throw new Error('Firebase가 제대로 초기화되지 않았습니다. 페이지를 새로고침해주세요.');
+                }
+                
+                const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+                const user = result.user;
+                
+                // Firebase 함수들을 동적으로 import
+                const { ref, get, set } = await import('https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js');
+                const { logEvent } = await import('https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js');
+                
+                // 사용자 정보를 Realtime Database에 저장 (새 사용자인 경우)
+                const userRef = ref(window.firebaseDatabase, `users/${user.uid}`);
+                const snapshot = await get(userRef);
+                
+                if (!snapshot.exists()) {
+                    // 새 사용자인 경우 데이터베이스에 정보 저장
+                    await set(userRef, {
+                        username: user.displayName || user.email.split('@')[0],
+                        email: user.email,
+                        bestScore: 0,
+                        totalGames: 0,
+                        createdAt: new Date().toISOString(),
+                        provider: 'google'
+                    });
+                }
+                
+                // Analytics 이벤트 로그
+                if (window.firebaseAnalytics) {
+                    logEvent(window.firebaseAnalytics, 'login', {
+                        method: 'google'
+                    });
+                }
+                
+                // 성공 메시지
+                console.log('Google 로그인 성공:', user.displayName);
+                alert('Google 로그인 성공!');
+                
+            } catch (error) {
+                console.error('Google 로그인 오류:', error);
+                
+                let errorMessage = 'Google 로그인에 실패했습니다.';
+                switch (error.code) {
+                    case 'auth/popup-closed-by-user':
+                        errorMessage = '로그인 창이 닫혔습니다.';
+                        break;
+                    case 'auth/popup-blocked':
+                        errorMessage = '팝업이 차단되었습니다. 팝업을 허용해주세요.';
+                        break;
+                    case 'auth/cancelled-popup-request':
+                        errorMessage = '로그인이 취소되었습니다.';
+                        break;
+                    case 'auth/configuration-not-found':
+                        errorMessage = 'Firebase Console에서 Google 로그인을 활성화해주세요.';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = 'Google 로그인이 비활성화되어 있습니다.';
+                        break;
+                }
+                
+                alert(errorMessage);
+            }
+        }
+        
+        // 폼 유효성 검사
+        function validateForm(formType) {
+            if (formType === 'register') {
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerPasswordConfirm').value;
+                
+                if (password !== confirmPassword) {
+                    document.getElementById('registerError').textContent = '비밀번호가 일치하지 않습니다.';
+                    return false;
+                }
+                
+                if (password.length < 6) {
+                    document.getElementById('registerError').textContent = '비밀번호는 6자 이상이어야 합니다.';
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // 로딩 상태 표시
+        function setLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const buttonText = button.querySelector('.button-text');
+            const spinner = button.querySelector('.loading-spinner');
+            
+            if (isLoading) {
+                button.disabled = true;
+                buttonText.style.display = 'none';
+                spinner.style.display = 'inline';
+            } else {
+                button.disabled = false;
+                buttonText.style.display = 'inline';
+                spinner.style.display = 'none';
+            }
+        }
+        
+        // 프로필 버튼 기능
+        function showProfile() {
+            const user = window.authManager?.getCurrentUser();
+            if (user) {
+                const profileInfo = `
+사용자 정보:
+- 이름: ${user.displayName || '설정되지 않음'}
+- 이메일: ${user.email}
+- 가입일: ${user.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : '알 수 없음'}
+- 마지막 로그인: ${user.metadata?.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString() : '알 수 없음'}
+- 이메일 인증: ${user.emailVerified ? '인증됨' : '미인증'}
+                `;
+                alert(profileInfo);
+            }
+        }
+        
+        // Firebase 설정 패널 제어
+        function showFirebaseSetupPanel() {
+            document.getElementById('firebaseSetupPanel').style.display = 'flex';
+        }
+        
+        function hideFirebaseSetupPanel() {
+            document.getElementById('firebaseSetupPanel').style.display = 'none';
+        }
+        
+        // 전역으로 사용할 수 있도록 설정
+        window.showFirebaseSetupPanel = showFirebaseSetupPanel;
+        window.hideFirebaseSetupPanel = hideFirebaseSetupPanel;
+        
+        // 페이지 로드 시 이벤트 리스너 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileButton = document.getElementById('profileButton');
+            if (profileButton) {
+                profileButton.addEventListener('click', showProfile);
+            }
+            
+            const setupCompleteButton = document.getElementById('setupCompleteButton');
+            if (setupCompleteButton) {
+                setupCompleteButton.addEventListener('click', hideFirebaseSetupPanel);
+            }
+        });
+    </script>
+    
+    <script type="module" src="auth.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

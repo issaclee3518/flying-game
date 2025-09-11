@@ -1,13 +1,35 @@
-// 인증 관련 JavaScript 코드
+// Firebase 인증 관련 JavaScript 코드
+import { 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged,
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup
+} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
+import { 
+    ref, 
+    get, 
+    set, 
+    update, 
+    push, 
+    query, 
+    orderByChild, 
+    limitToLast, 
+    onValue 
+} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js';
+import { 
+    logEvent 
+} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js';
 
 class AuthManager {
     constructor() {
-        this.token = localStorage.getItem('gameToken');
-        this.user = JSON.parse(localStorage.getItem('gameUser') || 'null');
+        this.user = null;
         this.bestScore = 0;
         
         this.initializeEventListeners();
-        this.checkAuthStatus();
+        this.initializeAuthStateListener();
     }
 
     initializeEventListeners() {
@@ -40,35 +62,63 @@ class AuthManager {
     async handleLogin(e) {
         e.preventDefault();
         
-        const username = document.getElementById('loginUsername').value;
+        const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         const errorElement = document.getElementById('loginError');
 
+        // 로딩 상태 표시
+        setLoading('loginButton', true);
+        errorElement.textContent = '';
+
         try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.token = data.token;
-                this.user = data.user;
-                
-                localStorage.setItem('gameToken', this.token);
-                localStorage.setItem('gameUser', JSON.stringify(this.user));
-                
-                this.showUserPanel();
-                await this.loadUserData();
-            } else {
-                errorElement.textContent = data.error || '로그인에 실패했습니다.';
+            // Firebase Auth가 초기화되었는지 확인
+            if (!window.firebaseAuth) {
+                throw new Error('Firebase가 초기화되지 않았습니다. 페이지를 새로고침해주세요.');
             }
+            
+            const userCredential = await signInWithEmailAndPassword(window.firebaseAuth, email, password);
+            this.user = userCredential.user;
+            
+            // 사용자 프로필 정보 가져오기
+            await this.loadUserData();
+            this.showUserPanel();
+            
+            // Analytics 이벤트 로그
+            if (window.firebaseAnalytics) {
+                logEvent(window.firebaseAnalytics, 'login', {
+                    method: 'email'
+                });
+            }
+            
         } catch (error) {
-            errorElement.textContent = '서버 연결에 실패했습니다.';
+            console.error('로그인 오류:', error);
+            let errorMessage = '로그인에 실패했습니다.';
+            
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = '등록되지 않은 이메일입니다.';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage = '잘못된 비밀번호입니다.';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = '유효하지 않은 이메일 형식입니다.';
+                    break;
+                case 'auth/too-many-requests':
+                    errorMessage = '너무 많은 로그인 시도로 일시적으로 차단되었습니다.';
+                    break;
+                case 'auth/user-disabled':
+                    errorMessage = '비활성화된 계정입니다.';
+                    break;
+                case 'auth/network-request-failed':
+                    errorMessage = '네트워크 연결을 확인해주세요.';
+                    break;
+            }
+            
+            errorElement.textContent = errorMessage;
+        } finally {
+            // 로딩 상태 해제
+            setLoading('loginButton', false);
         }
     }
 
@@ -80,59 +130,100 @@ class AuthManager {
         const password = document.getElementById('registerPassword').value;
         const errorElement = document.getElementById('registerError');
 
+        // 폼 유효성 검사
+        if (!validateForm('register')) {
+            return;
+        }
+
+        // 로딩 상태 표시
+        setLoading('registerButton', true);
+        errorElement.textContent = '';
+
         try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.token = data.token;
-                this.user = data.user;
-                
-                localStorage.setItem('gameToken', this.token);
-                localStorage.setItem('gameUser', JSON.stringify(this.user));
-                
-                this.showUserPanel();
-                await this.loadUserData();
-            } else {
-                errorElement.textContent = data.error || '회원가입에 실패했습니다.';
+            // Firebase Auth가 초기화되었는지 확인
+            if (!window.firebaseAuth) {
+                throw new Error('Firebase가 초기화되지 않았습니다. 페이지를 새로고침해주세요.');
             }
+            
+            // Firebase Auth로 사용자 생성
+            const userCredential = await createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+            this.user = userCredential.user;
+            
+            // 사용자 프로필에 사용자명 추가
+            await updateProfile(this.user, {
+                displayName: username
+            });
+            
+            // Realtime Database에 사용자 정보 저장
+            await set(ref(window.firebaseDatabase, `users/${this.user.uid}`), {
+                username: username,
+                email: email,
+                bestScore: 0,
+                totalGames: 0,
+                createdAt: new Date().toISOString()
+            });
+            
+            await this.loadUserData();
+            this.showUserPanel();
+            
+            // Analytics 이벤트 로그
+            if (window.firebaseAnalytics) {
+                logEvent(window.firebaseAnalytics, 'sign_up', {
+                    method: 'email'
+                });
+            }
+            
         } catch (error) {
-            errorElement.textContent = '서버 연결에 실패했습니다.';
+            console.error('회원가입 오류:', error);
+            let errorMessage = '회원가입에 실패했습니다.';
+            
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    errorMessage = '이미 사용 중인 이메일입니다.';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = '유효하지 않은 이메일 형식입니다.';
+                    break;
+                case 'auth/weak-password':
+                    errorMessage = '비밀번호는 6자 이상이어야 합니다.';
+                    break;
+                case 'auth/operation-not-allowed':
+                    errorMessage = '이메일/비밀번호 로그인이 비활성화되어 있습니다.';
+                    // Firebase 설정 패널 표시
+                    if (window.showFirebaseSetupPanel) {
+                        window.showFirebaseSetupPanel();
+                    }
+                    break;
+                case 'auth/network-request-failed':
+                    errorMessage = '네트워크 연결을 확인해주세요.';
+                    break;
+                case 'auth/configuration-not-found':
+                    errorMessage = 'Firebase Console에서 Authentication을 활성화해주세요.';
+                    // Firebase 설정 패널 표시
+                    if (window.showFirebaseSetupPanel) {
+                        window.showFirebaseSetupPanel();
+                    }
+                    break;
+            }
+            
+            errorElement.textContent = errorMessage;
+        } finally {
+            // 로딩 상태 해제
+            setLoading('registerButton', false);
         }
     }
 
-    checkAuthStatus() {
-        if (this.token && this.user) {
-            this.verifyToken();
-        } else {
-            this.showAuthPanel();
-        }
-    }
-
-    async verifyToken() {
-        try {
-            const response = await fetch('/api/verify', {
-                headers: {
-                    'Authorization': `Bearer ${this.token}`
-                }
-            });
-
-            if (response.ok) {
-                this.showUserPanel();
+    initializeAuthStateListener() {
+        onAuthStateChanged(window.firebaseAuth, async (user) => {
+            if (user) {
+                this.user = user;
                 await this.loadUserData();
+                this.showUserPanel();
             } else {
-                this.logout();
+                this.user = null;
+                this.showAuthPanel();
             }
-        } catch (error) {
-            this.logout();
-        }
+        });
     }
 
     showAuthPanel() {
@@ -143,67 +234,139 @@ class AuthManager {
     showUserPanel() {
         document.getElementById('authPanel').style.display = 'none';
         document.getElementById('userPanel').style.display = 'block';
-        document.getElementById('userWelcome').textContent = `환영합니다, ${this.user.username}님!`;
+        const displayName = this.user.displayName || this.user.email;
+        document.getElementById('userWelcome').textContent = `환영합니다, ${displayName}님!`;
+        
+        // 사용자 아바타 설정
+        const avatar = document.getElementById('userAvatar');
+        if (this.user.photoURL) {
+            avatar.innerHTML = `<img src="${this.user.photoURL}" alt="프로필" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        } else {
+            avatar.textContent = displayName.charAt(0).toUpperCase();
+        }
     }
 
     async loadUserData() {
-        if (!this.token) return;
+        if (!this.user) return;
 
         try {
-            // 최고 점수 로드
-            const scoreResponse = await fetch('/api/scores/best', {
-                headers: {
-                    'Authorization': `Bearer ${this.token}`
-                }
-            });
-
-            if (scoreResponse.ok) {
-                const scoreData = await scoreResponse.json();
-                this.bestScore = scoreData.bestScore || 0;
+            // Realtime Database에서 사용자 데이터 로드
+            const userRef = ref(window.firebaseDatabase, `users/${this.user.uid}`);
+            const snapshot = await get(userRef);
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                this.bestScore = userData.bestScore || 0;
                 document.getElementById('bestScoreValue').textContent = this.bestScore;
+                document.getElementById('totalGames').textContent = userData.totalGames || 0;
             }
 
             // 랭킹 로드
-            const leaderboardResponse = await fetch('/api/scores/leaderboard');
-            if (leaderboardResponse.ok) {
-                const leaderboardData = await leaderboardResponse.json();
-                const userRank = leaderboardData.leaderboard.findIndex(
-                    entry => entry.username === this.user.username
-                ) + 1;
-                
-                document.getElementById('userRank').textContent = 
-                    userRank > 0 ? `${userRank}위` : '순위 외';
-            }
+            await this.loadLeaderboard();
         } catch (error) {
             console.error('사용자 데이터 로드 실패:', error);
         }
     }
 
+    async loadLeaderboard() {
+        try {
+            const leaderboardQuery = query(
+                ref(window.firebaseDatabase, 'users'),
+                orderByChild('bestScore'),
+                limitToLast(10)
+            );
+            
+            const snapshot = await get(leaderboardQuery);
+            const leaderboard = [];
+            
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const sortedUsers = Object.entries(data)
+                    .map(([uid, userData]) => ({
+                        uid,
+                        username: userData.username,
+                        bestScore: userData.bestScore || 0
+                    }))
+                    .sort((a, b) => b.bestScore - a.bestScore)
+                    .slice(0, 10);
+                
+                sortedUsers.forEach((user, index) => {
+                    leaderboard.push({
+                        rank: index + 1,
+                        username: user.username,
+                        score: user.bestScore
+                    });
+                });
+            }
+
+            // 사용자 순위 찾기
+            const userRank = leaderboard.findIndex(
+                entry => entry.username === this.user.displayName
+            ) + 1;
+            
+            document.getElementById('userRank').textContent = 
+                userRank > 0 ? `${userRank}위` : '순위 외';
+                
+        } catch (error) {
+            console.error('랭킹 로드 실패:', error);
+        }
+    }
+
     async saveScore(score) {
-        if (!this.token) return false;
+        if (!this.user) return false;
 
         try {
-            const response = await fetch('/api/scores', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.token}`
-                },
-                body: JSON.stringify({ score })
+            // Realtime Database에 점수 저장
+            const scoreRef = push(ref(window.firebaseDatabase, 'scores'));
+            await set(scoreRef, {
+                userId: this.user.uid,
+                username: this.user.displayName,
+                score: score,
+                gameDate: new Date().toISOString()
             });
 
-            if (response.ok) {
-                const data = await response.json();
+            // 사용자 최고 점수 업데이트
+            const userRef = ref(window.firebaseDatabase, `users/${this.user.uid}`);
+            const userSnapshot = await get(userRef);
+            
+            if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
+                const isNewRecord = score > (userData.bestScore || 0);
                 
-                // 새로운 최고 기록인지 확인
-                if (score > this.bestScore) {
+                // 게임 수는 항상 증가 (새로운 최고 기록이든 아니든)
+                const newTotalGames = (userData.totalGames || 0) + 1;
+                
+                if (isNewRecord) {
+                    await update(userRef, {
+                        bestScore: score,
+                        totalGames: newTotalGames
+                    });
+                    
                     this.bestScore = score;
                     document.getElementById('bestScoreValue').textContent = this.bestScore;
+                    
+                    // 랭킹 다시 로드
+                    await this.loadLeaderboard();
+                    
+                    // Analytics 이벤트 로그
+                    if (window.firebaseAnalytics) {
+                        logEvent(window.firebaseAnalytics, 'score_achievement', {
+                            score: score,
+                            is_new_record: true
+                        });
+                    }
+                    
                     return true; // 새로운 최고 기록
+                } else {
+                    await update(userRef, {
+                        totalGames: newTotalGames
+                    });
                 }
                 
-                return false; // 새로운 최고 기록 아님
+                // 게임 수 UI 업데이트
+                document.getElementById('totalGames').textContent = newTotalGames;
             }
+            
+            return false; // 새로운 최고 기록 아님
         } catch (error) {
             console.error('점수 저장 실패:', error);
         }
@@ -211,25 +374,31 @@ class AuthManager {
         return false;
     }
 
-    logout() {
-        this.token = null;
-        this.user = null;
-        this.bestScore = 0;
-        
-        localStorage.removeItem('gameToken');
-        localStorage.removeItem('gameUser');
-        
-        this.showAuthPanel();
-        
-        // 폼 초기화
-        document.getElementById('loginFormElement').reset();
-        document.getElementById('registerFormElement').reset();
-        document.getElementById('loginError').textContent = '';
-        document.getElementById('registerError').textContent = '';
+    async logout() {
+        try {
+            await signOut(window.firebaseAuth);
+            this.user = null;
+            this.bestScore = 0;
+            
+            this.showAuthPanel();
+            
+            // Analytics 이벤트 로그
+            if (window.firebaseAnalytics) {
+                logEvent(window.firebaseAnalytics, 'logout');
+            }
+            
+            // 폼 초기화
+            document.getElementById('loginFormElement').reset();
+            document.getElementById('registerFormElement').reset();
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('registerError').textContent = '';
+        } catch (error) {
+            console.error('로그아웃 오류:', error);
+        }
     }
 
     isAuthenticated() {
-        return this.token && this.user;
+        return this.user !== null;
     }
 
     getCurrentUser() {
@@ -241,5 +410,30 @@ class AuthManager {
     }
 }
 
-// 전역 인증 매니저 인스턴스
-const authManager = new AuthManager();
+// AuthManager 초기화 함수
+async function initializeAuthManager() {
+    // Firebase가 초기화될 때까지 대기
+    let attempts = 0;
+    const maxAttempts = 50; // 5초 대기
+    
+    while (!window.firebaseAuth && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    if (!window.firebaseAuth) {
+        console.error('Firebase Auth가 초기화되지 않았습니다.');
+        return null;
+    }
+    
+    // AuthManager 인스턴스 생성
+    const authManager = new AuthManager();
+    window.authManager = authManager;
+    
+    console.log('AuthManager 초기화 완료');
+    return authManager;
+}
+
+// 전역으로 사용할 수 있도록 설정
+window.initializeAuthManager = initializeAuthManager;
+

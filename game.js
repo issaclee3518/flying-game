@@ -554,12 +554,18 @@ function createCactusAndNormalPattern() {
 }
 
 function createBirdObstacles() {
-    // 새 장애물 생성 (더 많이, 더 빠르게)
-    const numBirds = 4 + Math.floor(Math.random() * 4); // 4~7마리로 증가
+    // 새 장애물 생성 (조금 더 많게)
+    const numBirds = 3 + Math.floor(Math.random() * 4); // 3~6마리
     
     for (let i = 0; i < numBirds; i++) {
         const x = canvas.width + i * (50 + Math.random() * 40); // 50~90픽셀 간격으로 줄임
         const y = 60 + Math.random() * (canvas.height - 120); // 더 넓은 공간에 배치
+        
+        // 밤에는 검은색 새 확률을 더 줄임
+        const isNight = Math.floor(score / 150) % 2 === 1;
+        const blackBirdChance = isNight ? 0.05 : 0.1; // 밤에는 5%, 낮에는 10%
+        const isBlackBird = Math.random() < blackBirdChance;
+        const birdColor = isBlackBird ? '#2C2C2C' : '#8B4513'; // 검은색 또는 갈색
         
         obstacles.push({
             x: x,
@@ -567,10 +573,14 @@ function createBirdObstacles() {
             width: 25,
             height: 15,
             type: 'bird',
-            color: '#8B4513', // 갈색
+            color: birdColor,
             wingPhase: Math.random() * Math.PI * 2, // 날개 펄럭임 위상
             passed: false,
-            speed: OBSTACLE_SPEED * 1.5 // 새는 화면보다 1.5배 빠르게
+            speed: isBlackBird ? OBSTACLE_SPEED * 1.8 : OBSTACLE_SPEED * 1.5, // 검은색 새는 더 빠르게
+            isBlackBird: isBlackBird, // 검은색 새 여부
+            floatPhase: Math.random() * Math.PI * 2, // 위아래 움직임 위상
+            floatAmplitude: isBlackBird ? 2 : 0, // 검은색 새만 위아래 움직임 (살짝씩)
+            floatSpeed: isBlackBird ? 0.02 : 0 // 검은색 새만 위아래 움직임 속도 (살짝씩)
         });
     }
 }
@@ -1232,9 +1242,12 @@ function drawObstacles() {
         ctx.fillStyle = obstacle.color;
         
         if (obstacle.type === 'bird') {
-            // 새 그리기
+            // 새 그리기 (앞쪽을 바라보도록 수정)
             const centerX = obstacle.x + obstacle.width / 2;
             const centerY = obstacle.y + obstacle.height / 2;
+            
+            // 검은색 새인지 확인
+            const isBlackBird = obstacle.isBlackBird;
             
             // 날개 펄럭임 애니메이션
             obstacle.wingPhase += 0.3;
@@ -1246,48 +1259,184 @@ function drawObstacles() {
             ctx.ellipse(centerX, centerY, obstacle.width/2, obstacle.height/2, 0, 0, Math.PI * 2);
             ctx.fill();
             
-            // 새 머리
+            // 새 머리 (왼쪽에 위치)
             ctx.beginPath();
-            ctx.arc(centerX + obstacle.width/3, centerY - obstacle.height/4, obstacle.height/3, 0, Math.PI * 2);
+            ctx.arc(centerX - obstacle.width/3, centerY, obstacle.height/3, 0, Math.PI * 2);
             ctx.fill();
             
-            // 부리
-            ctx.fillStyle = '#FFA500'; // 주황색
-            ctx.beginPath();
-            ctx.moveTo(centerX + obstacle.width/2, centerY - obstacle.height/4);
-            ctx.lineTo(centerX + obstacle.width/2 + 4, centerY - obstacle.height/4);
-            ctx.lineTo(centerX + obstacle.width/2, centerY - obstacle.height/4 + 2);
-            ctx.closePath();
-            ctx.fill();
+            // 부리 (뾰족하게 왼쪽으로)
+            if (isBlackBird) {
+                // 검은색 새의 부리 (노란색)
+                ctx.fillStyle = '#FFD700'; // 금색
+                ctx.beginPath();
+                ctx.moveTo(centerX - obstacle.width/2 - 1, centerY);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY - 3);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY + 3);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 부리 하이라이트 (밝은 노란색)
+                ctx.fillStyle = '#FFFF00'; // 밝은 노란색
+                ctx.beginPath();
+                ctx.moveTo(centerX - obstacle.width/2 - 2, centerY - 1);
+                ctx.lineTo(centerX - obstacle.width/2 - 10, centerY - 2);
+                ctx.lineTo(centerX - obstacle.width/2 - 10, centerY + 2);
+                ctx.lineTo(centerX - obstacle.width/2 - 2, centerY + 1);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 부리 끝부분 하이라이트
+                ctx.fillStyle = '#FFA500'; // 주황색
+                ctx.beginPath();
+                ctx.moveTo(centerX - obstacle.width/2 - 10, centerY - 2);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY - 3);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY + 3);
+                ctx.lineTo(centerX - obstacle.width/2 - 10, centerY + 2);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                // 일반 새의 부리 (주황색)
+                ctx.fillStyle = '#FF8C00'; // 진한 주황색
+                ctx.beginPath();
+                ctx.moveTo(centerX - obstacle.width/2 - 1, centerY);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY - 3);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY + 3);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 부리 하이라이트 (뾰족한 부분)
+                ctx.fillStyle = '#FFD700'; // 금색
+                ctx.beginPath();
+                ctx.moveTo(centerX - obstacle.width/2 - 2, centerY - 1);
+                ctx.lineTo(centerX - obstacle.width/2 - 10, centerY - 2);
+                ctx.lineTo(centerX - obstacle.width/2 - 10, centerY + 2);
+                ctx.lineTo(centerX - obstacle.width/2 - 2, centerY + 1);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 부리 끝부분 하이라이트
+                ctx.fillStyle = '#FFA500'; // 주황색
+                ctx.beginPath();
+                ctx.moveTo(centerX - obstacle.width/2 - 10, centerY - 2);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY - 3);
+                ctx.lineTo(centerX - obstacle.width/2 - 12, centerY + 3);
+                ctx.lineTo(centerX - obstacle.width/2 - 10, centerY + 2);
+                ctx.closePath();
+                ctx.fill();
+            }
             
-            // 눈
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(centerX + obstacle.width/3 + 2, centerY - obstacle.height/4 - 2, 2, 0, Math.PI * 2);
-            ctx.fill();
+            // 눈 (왼쪽에 명확하게 배치)
+            if (isBlackBird) {
+                // 검은색 새의 눈 (빨간색)
+                ctx.fillStyle = '#FF0000'; // 빨간색
+                ctx.beginPath();
+                ctx.arc(centerX - obstacle.width/3 - 5, centerY - 3, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 눈 하이라이트 (밝은 빨간색)
+                ctx.fillStyle = '#FF6666'; // 밝은 빨간색
+                ctx.beginPath();
+                ctx.arc(centerX - obstacle.width/3 - 6, centerY - 3, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 눈 하이라이트 (왼쪽을 바라보는 느낌)
+                ctx.fillStyle = '#FFFFFF'; // 흰색
+                ctx.beginPath();
+                ctx.arc(centerX - obstacle.width/3 - 6.5, centerY - 3.5, 0.8, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // 일반 새의 눈 (기존과 동일)
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(centerX - obstacle.width/3 - 5, centerY - 3, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(centerX - obstacle.width/3 - 6, centerY - 3, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 눈 하이라이트 (왼쪽을 바라보는 느낌)
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(centerX - obstacle.width/3 - 6.5, centerY - 3.5, 0.8, 0, Math.PI * 2);
+                ctx.fill();
+            }
             
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(centerX + obstacle.width/3 + 3, centerY - obstacle.height/4 - 2, 1, 0, Math.PI * 2);
-            ctx.fill();
+            // 날개 (펄럭이는 효과, 앞쪽을 향하도록)
+            if (isBlackBird) {
+                // 검은색 새의 날개 (검은색)
+                ctx.fillStyle = '#1A1A1A'; // 진한 검은색
+                ctx.beginPath();
+                ctx.ellipse(centerX - obstacle.width/6, centerY + wingOffset, obstacle.width/4, obstacle.height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.ellipse(centerX + obstacle.width/6, centerY - wingOffset, obstacle.width/4, obstacle.height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // 일반 새의 날개 (기존과 동일)
+                ctx.fillStyle = darkenColor(obstacle.color, 0.2);
+                ctx.beginPath();
+                ctx.ellipse(centerX - obstacle.width/6, centerY + wingOffset, obstacle.width/4, obstacle.height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.ellipse(centerX + obstacle.width/6, centerY - wingOffset, obstacle.width/4, obstacle.height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
             
-            // 날개 (펄럭이는 효과)
-            ctx.fillStyle = darkenColor(obstacle.color, 0.2);
-            ctx.beginPath();
-            ctx.ellipse(centerX - obstacle.width/4, centerY + wingOffset, obstacle.width/3, obstacle.height/2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.ellipse(centerX + obstacle.width/4, centerY - wingOffset, obstacle.width/3, obstacle.height/2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 꼬리
-            ctx.beginPath();
-            ctx.moveTo(centerX - obstacle.width/2, centerY);
-            ctx.lineTo(centerX - obstacle.width/2 - 8, centerY - 3);
-            ctx.lineTo(centerX - obstacle.width/2 - 6, centerY + 3);
-            ctx.closePath();
-            ctx.fill();
+            // 꼬리 (오른쪽에 위치)
+            if (isBlackBird) {
+                // 검은색 새의 꼬리 (검은색)
+                ctx.fillStyle = '#1A1A1A'; // 진한 검은색
+                ctx.beginPath();
+                ctx.moveTo(centerX + obstacle.width/2, centerY);
+                ctx.lineTo(centerX + obstacle.width/2 + 10, centerY - 4);
+                ctx.lineTo(centerX + obstacle.width/2 + 8, centerY + 4);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 꼬리 깃털 디테일 (검은색)
+                ctx.fillStyle = '#0D0D0D'; // 더 진한 검은색
+                ctx.beginPath();
+                ctx.moveTo(centerX + obstacle.width/2 + 2, centerY - 2);
+                ctx.lineTo(centerX + obstacle.width/2 + 6, centerY - 3);
+                ctx.lineTo(centerX + obstacle.width/2 + 4, centerY + 1);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX + obstacle.width/2 + 2, centerY + 2);
+                ctx.lineTo(centerX + obstacle.width/2 + 6, centerY + 3);
+                ctx.lineTo(centerX + obstacle.width/2 + 4, centerY - 1);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                // 일반 새의 꼬리 (기존과 동일)
+                ctx.beginPath();
+                ctx.moveTo(centerX + obstacle.width/2, centerY);
+                ctx.lineTo(centerX + obstacle.width/2 + 10, centerY - 4);
+                ctx.lineTo(centerX + obstacle.width/2 + 8, centerY + 4);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 꼬리 깃털 디테일
+                ctx.fillStyle = darkenColor(obstacle.color, 0.3);
+                ctx.beginPath();
+                ctx.moveTo(centerX + obstacle.width/2 + 2, centerY - 2);
+                ctx.lineTo(centerX + obstacle.width/2 + 6, centerY - 3);
+                ctx.lineTo(centerX + obstacle.width/2 + 4, centerY + 1);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX + obstacle.width/2 + 2, centerY + 2);
+                ctx.lineTo(centerX + obstacle.width/2 + 6, centerY + 3);
+                ctx.lineTo(centerX + obstacle.width/2 + 4, centerY - 1);
+                ctx.closePath();
+                ctx.fill();
+            }
             
         } else if (obstacle.type === 'spike') {
             // 선인장 (세로형)
@@ -1951,6 +2100,13 @@ function update() {
         const speed = obstacle.type === 'bird' ? (obstacle.speed || OBSTACLE_SPEED * 1.5) : OBSTACLE_SPEED;
         obstacle.x -= speed * (deltaTime / 1000); // deltaTime을 초 단위로 변환
         
+        // 검은색 새의 위아래 움직임 처리
+        if (obstacle.type === 'bird' && obstacle.isBlackBird) {
+            obstacle.floatPhase += obstacle.floatSpeed;
+            const floatOffset = Math.sin(obstacle.floatPhase) * obstacle.floatAmplitude;
+            obstacle.y = obstacle.y + floatOffset * (deltaTime / 1000) * 60; // 60fps 기준으로 정규화
+        }
+        
         // 점수 증가 (장애물을 통과했을 때)
         let obstacleWidth = obstacle.width;
         if (obstacle.type === 'ground_circle' || obstacle.type === 'ceiling_circle' || 
@@ -2040,22 +2196,176 @@ function draw() {
     // 배경 지우기
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // 사막 배경 그라데이션
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#FFE0B2'); // 하늘색 -> 사막 하늘
-    gradient.addColorStop(0.7, '#FFCC80');
-    gradient.addColorStop(1, '#FF8A65'); // 사막 지평선
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 점수에 따른 낮/밤 배경 결정 (130점부터 서서히 전환)
+    const cycle = Math.floor(score / 150); // 150점마다 1 사이클
+    const cycleProgress = (score % 150) / 150; // 현재 사이클 내 진행도 (0~1)
     
-    // 태양 효과
-    ctx.fillStyle = 'rgba(255, 193, 7, 0.8)';
-    ctx.beginPath();
-    ctx.arc(canvas.width - 100, 80, 40, 0, Math.PI * 2);
-    ctx.fill();
+    // 전환 상태 결정
+    let isNight = false;
+    let transitionProgress = 0;
+    
+    // 130점(0.867)부터 150점(1.0)까지 전환 구간
+    if (cycleProgress >= 0.867) {
+        // 전환 진행도 계산 (0~1)
+        transitionProgress = (cycleProgress - 0.867) / (1.0 - 0.867);
+        transitionProgress = Math.max(0, Math.min(1, transitionProgress));
+        
+        // 현재 사이클의 기본 상태 (짝수 사이클 = 낮, 홀수 사이클 = 밤)
+        const baseState = cycle % 2 === 0; // false = 낮, true = 밤
+        
+        // 전환 중일 때는 기본 상태에서 시작해서 반대 상태로
+        isNight = baseState;
+    } else {
+        // 전환 구간이 아닐 때는 현재 사이클 상태 유지
+        isNight = cycle % 2 === 1; // 홀수 사이클 = 밤
+        transitionProgress = 0;
+    }
+    
+    // 낮 배경 그라데이션 (기본)
+    const dayGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    dayGradient.addColorStop(0, '#FFE0B2'); // 하늘색 -> 사막 하늘
+    dayGradient.addColorStop(0.7, '#FFCC80');
+    dayGradient.addColorStop(1, '#FF8A65'); // 사막 지평선
+    
+    // 밤 배경 그라데이션
+    const nightGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    nightGradient.addColorStop(0, '#1A1A2E'); // 어두운 하늘
+    nightGradient.addColorStop(0.7, '#16213E');
+    nightGradient.addColorStop(1, '#0F3460'); // 어두운 지평선
+    
+    // 서서히 전환되는 배경
+    if (transitionProgress > 0) {
+        // 전환 중일 때 두 배경을 블렌딩
+        const baseState = cycle % 2 === 0; // 현재 사이클의 기본 상태
+        
+        if (baseState) {
+            // 낮에서 밤으로 전환 (점점 어두워짐)
+            ctx.fillStyle = dayGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.globalAlpha = transitionProgress;
+            ctx.fillStyle = nightGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1;
+        } else {
+            // 밤에서 낮으로 전환 (점점 밝아짐)
+            ctx.fillStyle = nightGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.globalAlpha = transitionProgress;
+            ctx.fillStyle = dayGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1;
+        }
+    } else {
+        // 전환 중이 아닐 때 - 현재 상태에 맞는 배경
+        if (isNight) {
+            ctx.fillStyle = nightGradient;
+        } else {
+            ctx.fillStyle = dayGradient;
+        }
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    // 태양/달 효과
+    if (transitionProgress > 0) {
+        // 전환 중일 때
+        const baseState = cycle % 2 === 0; // 현재 사이클의 기본 상태
+        
+        if (baseState) {
+            // 낮에서 밤으로 전환
+            // 태양이 점점 사라짐
+            ctx.fillStyle = `rgba(255, 193, 7, ${0.8 * (1 - transitionProgress)})`;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100, 80, 40, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 달과 별들이 점점 나타남
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * transitionProgress})`;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100, 80, 35, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 달의 그림자 효과
+            ctx.fillStyle = `rgba(200, 200, 200, ${0.3 * transitionProgress})`;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100 + 8, 80 - 8, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 별들
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 * transitionProgress})`;
+            for (let i = 0; i < 20; i++) {
+                const x = (i * 47) % canvas.width;
+                const y = (i * 31) % 150;
+                ctx.beginPath();
+                ctx.arc(x, y, 1 + Math.random() * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            // 밤에서 낮으로 전환
+            // 달과 별들이 점점 사라짐
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * (1 - transitionProgress)})`;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100, 80, 35, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 달의 그림자 효과
+            ctx.fillStyle = `rgba(200, 200, 200, ${0.3 * (1 - transitionProgress)})`;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100 + 8, 80 - 8, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 별들
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 * (1 - transitionProgress)})`;
+            for (let i = 0; i < 20; i++) {
+                const x = (i * 47) % canvas.width;
+                const y = (i * 31) % 150;
+                ctx.beginPath();
+                ctx.arc(x, y, 1 + Math.random() * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // 태양이 점점 나타남
+            ctx.fillStyle = `rgba(255, 193, 7, ${0.8 * transitionProgress})`;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100, 80, 40, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    } else {
+        // 전환 중이 아닐 때 - 현재 상태에 맞는 천체
+        if (isNight) {
+            // 밤 상태 - 달과 별들
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100, 80, 35, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 달의 그림자 효과
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100 + 8, 80 - 8, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 별들
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 20; i++) {
+                const x = (i * 47) % canvas.width;
+                const y = (i * 31) % 150;
+                ctx.beginPath();
+                ctx.arc(x, y, 1 + Math.random() * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            // 낮 상태 - 태양
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.8)';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100, 80, 40, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
     
     // 사막 언덕들 - 시간 기반으로 일정한 속도
-    ctx.fillStyle = 'rgba(121, 85, 72, 0.3)';
+    ctx.fillStyle = isNight ? 'rgba(60, 40, 35, 0.4)' : 'rgba(121, 85, 72, 0.3)'; // 밤에는 더 어둡게
     const currentTime = Date.now();
     const timeOffset = (currentTime - gameStartTime) * 0.05; // 일정한 이동 속도
     for (let i = 0; i < 4; i++) {
@@ -2203,7 +2513,7 @@ async function gameOver() {
     finalScoreElement.textContent = score;
     gameOverPanel.style.display = 'block';
     
-    // 점수 저장 (로그인된 사용자인 경우)
+    // 점수 저장 및 게임 수 증가 (로그인된 사용자인 경우)
     if (typeof authManager !== 'undefined' && authManager.isAuthenticated()) {
         const isNewRecord = await authManager.saveScore(score);
         
