@@ -91,27 +91,27 @@ class AuthManager {
             }
             
         } catch (error) {
-            console.error('로그인 오류:', error);
-            let errorMessage = '로그인에 실패했습니다.';
+            console.error('Login error:', error);
+            let errorMessage = 'Login failed.';
             
             switch (error.code) {
                 case 'auth/user-not-found':
-                    errorMessage = '등록되지 않은 이메일입니다.';
+                    errorMessage = 'Email not registered.';
                     break;
                 case 'auth/wrong-password':
-                    errorMessage = '잘못된 비밀번호입니다.';
+                    errorMessage = 'Wrong password.';
                     break;
                 case 'auth/invalid-email':
-                    errorMessage = '유효하지 않은 이메일 형식입니다.';
+                    errorMessage = 'Invalid email format.';
                     break;
                 case 'auth/too-many-requests':
-                    errorMessage = '너무 많은 로그인 시도로 일시적으로 차단되었습니다.';
+                    errorMessage = 'Too many login attempts. Please try again later.';
                     break;
                 case 'auth/user-disabled':
-                    errorMessage = '비활성화된 계정입니다.';
+                    errorMessage = 'Account is disabled.';
                     break;
                 case 'auth/network-request-failed':
-                    errorMessage = '네트워크 연결을 확인해주세요.';
+                    errorMessage = 'Please check your network connection.';
                     break;
             }
             
@@ -174,28 +174,28 @@ class AuthManager {
             }
             
         } catch (error) {
-            console.error('회원가입 오류:', error);
-            let errorMessage = '회원가입에 실패했습니다.';
+            console.error('Registration error:', error);
+            let errorMessage = 'Registration failed.';
             
             switch (error.code) {
                 case 'auth/email-already-in-use':
-                    errorMessage = '이미 사용 중인 이메일입니다.';
+                    errorMessage = 'Email already in use.';
                     break;
                 case 'auth/invalid-email':
-                    errorMessage = '유효하지 않은 이메일 형식입니다.';
+                    errorMessage = 'Invalid email format.';
                     break;
                 case 'auth/weak-password':
-                    errorMessage = '비밀번호는 6자 이상이어야 합니다.';
+                    errorMessage = 'Password must be at least 6 characters long.';
                     break;
                 case 'auth/operation-not-allowed':
-                    errorMessage = '이메일/비밀번호 로그인이 비활성화되어 있습니다.';
+                    errorMessage = 'Email/password login is disabled.';
                     // Firebase 설정 패널 표시
                     if (window.showFirebaseSetupPanel) {
                         window.showFirebaseSetupPanel();
                     }
                     break;
                 case 'auth/network-request-failed':
-                    errorMessage = '네트워크 연결을 확인해주세요.';
+                    errorMessage = 'Please check your network connection.';
                     break;
                 case 'auth/configuration-not-found':
                     errorMessage = 'Firebase Console에서 Authentication을 활성화해주세요.';

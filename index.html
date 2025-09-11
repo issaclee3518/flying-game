@@ -11,6 +11,12 @@
     <meta name="apple-mobile-web-app-title" content="Lost in Ashes">
     <meta http-equiv="Cross-Origin-Opener-Policy" content="unsafe-none">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-control" content="no-cache">
+    <meta name="expires" content="0">
+    <meta name="pragma" content="no-cache">
     <style>
         body {
             margin: 0;
@@ -989,7 +995,25 @@ User Information:
         });
     </script>
     
-    <script type="module" src="auth.js"></script>
-    <script src="game.js"></script>
+    <script type="module" src="auth.js?v=2.0"></script>
+    <script src="game.js?v=2.0"></script>
+    
+    <!-- Force cache invalidation -->
+    <script>
+        // Clear all caches
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) {
+                    caches.delete(name);
+                }
+            });
+        }
+        
+        // Force reload on page load
+        if (performance.navigation.type === 1) {
+            // Page was reloaded
+            console.log('Page reloaded - cache cleared');
+        }
+    </script>
 </body>
 </html>
