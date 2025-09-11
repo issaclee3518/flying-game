@@ -609,66 +609,66 @@
     <div id="authPanel" class="auth-panel">
         <div class="auth-container">
             <div class="auth-tabs">
-                <button id="loginTab" class="auth-tab active">로그인</button>
-                <button id="registerTab" class="auth-tab">회원가입</button>
+                <button id="loginTab" class="auth-tab active">Login</button>
+                <button id="registerTab" class="auth-tab">Sign Up</button>
             </div>
             
             <!-- 로그인 폼 -->
             <div id="loginForm" class="auth-form active">
-                <h2>로그인</h2>
+                <h2>Login</h2>
                 <form id="loginFormElement">
                     <div class="input-group">
-                        <input type="email" id="loginEmail" placeholder="이메일" required>
+                        <input type="email" id="loginEmail" placeholder="Email" required>
                     </div>
                     <div class="input-group">
-                        <input type="password" id="loginPassword" placeholder="비밀번호" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
                     </div>
                     <button type="submit" class="auth-button" id="loginButton">
-                        <span class="button-text">로그인</span>
+                        <span class="button-text">Login</span>
                         <span class="loading-spinner" style="display: none;">⏳</span>
                     </button>
                 </form>
                 <div id="loginError" class="error-message"></div>
                 <div class="auth-divider">
-                    <span>또는</span>
+                    <span>or</span>
                 </div>
                 <button class="google-signin-button" onclick="signInWithGoogle()">
                     <span class="google-icon">🔍</span>
-                    Google로 로그인
+                    Sign in with Google
                 </button>
             </div>
             
             <!-- 회원가입 폼 -->
             <div id="registerForm" class="auth-form">
-                <h2>회원가입</h2>
+                <h2>Sign Up</h2>
                 <form id="registerFormElement">
                     <div class="input-group">
-                        <input type="text" id="registerUsername" placeholder="사용자명 (3-20자)" required minlength="3" maxlength="20">
+                        <input type="text" id="registerUsername" placeholder="Username (3-20 characters)" required minlength="3" maxlength="20">
                     </div>
                     <div class="input-group">
-                        <input type="email" id="registerEmail" placeholder="이메일" required>
+                        <input type="email" id="registerEmail" placeholder="Email" required>
                     </div>
                     <div class="input-group">
-                        <input type="password" id="registerPassword" placeholder="비밀번호 (6자 이상)" required minlength="6">
+                        <input type="password" id="registerPassword" placeholder="Password (6+ characters)" required minlength="6">
                         <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">👁️</button>
                     </div>
                     <div class="input-group">
-                        <input type="password" id="registerPasswordConfirm" placeholder="비밀번호 확인" required>
+                        <input type="password" id="registerPasswordConfirm" placeholder="Confirm Password" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('registerPasswordConfirm')">👁️</button>
                     </div>
                     <button type="submit" class="auth-button" id="registerButton">
-                        <span class="button-text">회원가입</span>
+                        <span class="button-text">Sign Up</span>
                         <span class="loading-spinner" style="display: none;">⏳</span>
                     </button>
                 </form>
                 <div id="registerError" class="error-message"></div>
                 <div class="auth-divider">
-                    <span>또는</span>
+                    <span>or</span>
                 </div>
                 <button class="google-signin-button" onclick="signInWithGoogle()">
                     <span class="google-icon">🔍</span>
-                    Google로 회원가입
+                    Sign up with Google
                 </button>
             </div>
         </div>
@@ -682,26 +682,26 @@
                     <span id="userAvatar">👤</span>
                 </div>
                 <div class="user-details">
-                    <h3 id="userWelcome">환영합니다!</h3>
+                    <h3 id="userWelcome">Welcome!</h3>
                     <div class="user-stats-horizontal">
                         <span class="stat-item-horizontal">
-                            <span class="stat-label">최고:</span>
+                            <span class="stat-label">Best:</span>
                             <span class="stat-value" id="bestScoreValue">0</span>
                         </span>
                         <span class="stat-item-horizontal">
-                            <span class="stat-label">순위:</span>
-                            <span class="stat-value" id="userRank">순위 외</span>
+                            <span class="stat-label">Rank:</span>
+                            <span class="stat-value" id="userRank">Unranked</span>
                         </span>
                         <span class="stat-item-horizontal">
-                            <span class="stat-label">게임:</span>
+                            <span class="stat-label">Games:</span>
                             <span class="stat-value" id="totalGames">0</span>
                         </span>
                     </div>
                 </div>
             </div>
             <div class="user-actions">
-                <button id="logoutButton" class="logout-button">로그아웃</button>
-                <button id="profileButton" class="profile-button">프로필</button>
+                <button id="logoutButton" class="logout-button">Logout</button>
+                <button id="profileButton" class="profile-button">Profile</button>
             </div>
         </div>
     </div>
@@ -711,19 +711,19 @@
         <div class="game-canvas-container">
             <canvas id="gameCanvas"></canvas>
             <div id="gameOverPanel" class="game-over-panel">
-                <div class="game-over-title">🎮 게임 오버!</div>
-                <div class="final-score">총 점수: <span id="finalScore">0</span>점</div>
-                <div id="newRecord" class="new-record" style="display: none;">🎉 새로운 최고 기록! 🎉</div>
-                <button id="restartButton" class="restart-button">🔄 다시 시작하기</button>
+                <div class="game-over-title">🎮 Game Over!</div>
+                <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+                <div id="newRecord" class="new-record" style="display: none;">🎉 New High Score! 🎉</div>
+                <button id="restartButton" class="restart-button">🔄 Play Again</button>
             </div>
         </div>
         <div class="game-info">
-            <div class="score">점수: <span id="score">0</span></div>
+            <div class="score">Score: <span id="score">0</span></div>
             <div id="gameStatus"></div>
         </div>
         <div class="controls">
-            <p id="controlText">스페이스바 또는 클릭으로 점프하세요!</p>
-            <p>게임 오버 시 R키 또는 다시 시작하기 버튼을 눌러 재시작하세요</p>
+            <p id="controlText">Press SPACE or click to jump!</p>
+            <p>Press R key or Play Again button to restart when game over</p>
         </div>
     </div>
 
@@ -853,58 +853,58 @@
                 }
                 
                 // 성공 메시지
-                console.log('Google 로그인 성공:', user.displayName);
-                alert('Google 로그인 성공!');
+                console.log('Google login successful:', user.displayName);
+                alert('Google login successful!');
                 
             } catch (error) {
-                console.error('=== Google 로그인 오류 ===');
-                console.error('오류 코드:', error.code);
-                console.error('오류 메시지:', error.message);
-                console.error('전체 오류:', error);
+                console.error('=== Google Login Error ===');
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                console.error('Full error:', error);
                 
-                let errorMessage = 'Google 로그인에 실패했습니다.';
+                let errorMessage = 'Google login failed.';
                 let helpMessage = '';
                 
                 switch (error.code) {
                     case 'auth/popup-closed-by-user':
-                        errorMessage = '로그인 창이 닫혔습니다.';
-                        helpMessage = '다시 시도해주세요.';
+                        errorMessage = 'Login window was closed.';
+                        helpMessage = 'Please try again.';
                         break;
                     case 'auth/popup-blocked':
-                        errorMessage = '팝업이 차단되었습니다.';
-                        helpMessage = '브라우저에서 팝업을 허용해주세요.';
+                        errorMessage = 'Popup was blocked.';
+                        helpMessage = 'Please allow popups in your browser.';
                         break;
                     case 'auth/cancelled-popup-request':
-                        errorMessage = '로그인이 취소되었습니다.';
-                        helpMessage = '다시 시도해주세요.';
+                        errorMessage = 'Login was cancelled.';
+                        helpMessage = 'Please try again.';
                         break;
                     case 'auth/configuration-not-found':
-                        errorMessage = 'Firebase Console에서 Google 로그인을 활성화해주세요.';
-                        helpMessage = 'GOOGLE_LOGIN_SETUP.md 파일을 참고하세요.';
+                        errorMessage = 'Please enable Google login in Firebase Console.';
+                        helpMessage = 'Check GOOGLE_LOGIN_SETUP.md file.';
                         break;
                     case 'auth/operation-not-allowed':
-                        errorMessage = 'Google 로그인이 비활성화되어 있습니다.';
+                        errorMessage = 'Google login is disabled.';
                         helpMessage = 'Firebase Console > Authentication > Sign-in method > Google > Enable';
                         break;
                     case 'auth/unauthorized-domain':
-                        errorMessage = '승인되지 않은 도메인입니다.';
-                        helpMessage = 'Firebase Console에서 도메인을 추가해주세요.';
+                        errorMessage = 'Unauthorized domain.';
+                        helpMessage = 'Please add domain in Firebase Console.';
                         break;
                     case 'auth/network-request-failed':
-                        errorMessage = '네트워크 연결 오류입니다.';
-                        helpMessage = '인터넷 연결을 확인해주세요.';
+                        errorMessage = 'Network connection error.';
+                        helpMessage = 'Please check your internet connection.';
                         break;
                     case 'auth/popup-blocked':
-                        errorMessage = '팝업이 차단되었습니다.';
-                        helpMessage = '브라우저에서 팝업을 허용해주세요.';
+                        errorMessage = 'Popup was blocked.';
+                        helpMessage = 'Please allow popups in your browser.';
                         break;
                     case 'auth/cancelled-popup-request':
-                        errorMessage = '로그인이 취소되었습니다.';
-                        helpMessage = '다시 시도해주세요.';
+                        errorMessage = 'Login was cancelled.';
+                        helpMessage = 'Please try again.';
                         break;
                     default:
-                        errorMessage = `오류: ${error.message}`;
-                        helpMessage = '브라우저 콘솔에서 자세한 오류를 확인하세요.';
+                        errorMessage = `Error: ${error.message}`;
+                        helpMessage = 'Check browser console for detailed error.';
                 }
                 
                 alert(`${errorMessage}\n\n${helpMessage}`);

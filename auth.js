@@ -274,7 +274,7 @@ class AuthManager {
             const snapshot = await get(usersRef);
             
             if (!snapshot.exists()) {
-                document.getElementById('userRank').textContent = '순위 외';
+                document.getElementById('userRank').textContent = 'Unranked';
                 return;
             }
             
@@ -299,9 +299,9 @@ class AuthManager {
             
             // 순위 표시 (10위 밖이어도 전체 순위 표시)
             if (userRank > 0) {
-                document.getElementById('userRank').textContent = `${userRank}위`;
+                document.getElementById('userRank').textContent = `#${userRank}`;
             } else {
-                document.getElementById('userRank').textContent = '순위 외';
+                document.getElementById('userRank').textContent = 'Unranked';
             }
                 
             console.log('순위표 로드 완료:', {
