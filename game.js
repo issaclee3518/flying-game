@@ -7,6 +7,41 @@ const gameOverPanel = document.getElementById('gameOverPanel');
 const finalScoreElement = document.getElementById('finalScore');
 const restartButton = document.getElementById('restartButton');
 
+// 모바일 대응 - 캔버스 크기 설정
+function setupCanvas() {
+    const isMobile = window.innerWidth <= 768;
+    const isSmallMobile = window.innerWidth <= 480;
+    
+    if (isSmallMobile) {
+        canvas.width = 320;
+        canvas.height = 240;
+    } else if (isMobile) {
+        canvas.width = 400;
+        canvas.height = 300;
+    } else {
+        canvas.width = 800;
+        canvas.height = 400;
+    }
+}
+
+// 초기 캔버스 설정
+setupCanvas();
+
+// 모바일 감지 및 컨트롤 텍스트 업데이트
+function updateControlText() {
+    const controlText = document.getElementById('controlText');
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        controlText.textContent = '화면을 터치해서 위로 날아오르세요!';
+    } else {
+        controlText.textContent = '스페이스바 또는 클릭으로 점프하세요!';
+    }
+}
+
+// 초기 컨트롤 텍스트 설정
+updateControlText();
+
 // 게임 변수
 let gameRunning = true;
 let score = 0;
@@ -36,6 +71,9 @@ const player = {
 
 // 스페이스바 상태 추적
 let spacePressed = false;
+
+// 터치 상태 추적
+let touchPressed = false;
 
 // 캐릭터 자취 배열
 let playerTrail = [];
@@ -2579,30 +2617,47 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// 캔버스 마우스 이벤트 - 스페이스바와 동일하게 작동
+// 터치 이벤트 리스너 (모바일 대응)
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchPressed = true;
+    spacePressed = true; // 터치와 스페이스바 동일하게 처리
+});
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    touchPressed = false;
+    spacePressed = false;
+});
+
+canvas.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    touchPressed = false;
+    spacePressed = false;
+});
+
+// 마우스 클릭 이벤트 (데스크톱에서도 클릭으로 플레이 가능)
 canvas.addEventListener('mousedown', (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    
-    // 좌클릭만 허용
-    if (e.button === 0 && gameRunning) {
-        spacePressed = true;
-    }
-    
-    return false;
+    spacePressed = true;
 });
 
 canvas.addEventListener('mouseup', (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    
-    // 좌클릭만 허용
-    if (e.button === 0) {
-        spacePressed = false;
-    }
-    
-    return false;
+    spacePressed = false;
 });
+
+// 화면 크기 변경 시 캔버스 재설정
+window.addEventListener('resize', () => {
+    setupCanvas();
+    updateControlText();
+    // 게임이 실행 중이면 재시작
+    if (gameRunning) {
+        restart();
+    }
+});
+
+// 캔버스 마우스 이벤트 - 스페이스바와 동일하게 작동
 
 // 다시 시작하기 버튼 클릭 이벤트
 restartButton.addEventListener('click', restart);
