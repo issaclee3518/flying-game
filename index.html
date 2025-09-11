@@ -9,6 +9,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Lost in Ashes">
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none">
     <style>
         body {
             margin: 0;
@@ -817,7 +819,10 @@
                     throw new Error('SignInWithPopup 함수가 없습니다.');
                 }
                 
-                const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+                // Google 로그인 팝업 설정
+                const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider, {
+                    popupRedirectUri: window.location.origin
+                });
                 const user = result.user;
                 
                 // Firebase 함수들을 동적으로 import
@@ -888,6 +893,14 @@
                     case 'auth/network-request-failed':
                         errorMessage = '네트워크 연결 오류입니다.';
                         helpMessage = '인터넷 연결을 확인해주세요.';
+                        break;
+                    case 'auth/popup-blocked':
+                        errorMessage = '팝업이 차단되었습니다.';
+                        helpMessage = '브라우저에서 팝업을 허용해주세요.';
+                        break;
+                    case 'auth/cancelled-popup-request':
+                        errorMessage = '로그인이 취소되었습니다.';
+                        helpMessage = '다시 시도해주세요.';
                         break;
                     default:
                         errorMessage = `오류: ${error.message}`;
